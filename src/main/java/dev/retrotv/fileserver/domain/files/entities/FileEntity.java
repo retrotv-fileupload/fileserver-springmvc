@@ -24,7 +24,7 @@ public class FileEntity {
 	@Column(name = "FILE_PATH", length = 1024, nullable = false)
 	private String filePath;
 
-	@Column(name = "MIME_TYPE", nullable = false)
+	@Column(name = "MIME_TYPE", length = 128, nullable = false)
 	private String mimeType;
 
 	@Column(name = "SIZE", nullable = false)
@@ -33,7 +33,7 @@ public class FileEntity {
 	@Column(name = "HASH", length = 64)
 	private String hash;
 
-	@Column(name = "DESCRIPTION", columnDefinition = "TEXT")
+	@Column(name = "DESCRIPTION", length = 1024)
 	private String description;
 
 	@Column(name = "IS_ACTIVE", nullable = false)
@@ -48,7 +48,7 @@ public class FileEntity {
 	@Column(name = "UPLOADED_BY")
 	private String uploadedBy;
 
-	@Column(name = "CATEGORY", length = 100)
+	@Column(name = "CATEGORY", length = 128)
 	private String category;
 
 	@JoinColumn(name = "FILE_ID")
