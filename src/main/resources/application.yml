@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: fileserver
+  datasource:
+    url: jdbc:sqlite:fileinfo.db
+    driver-class-name: org.sqlite.JDBC
+  jpa:
+    database-platform: org.hibernate.community.dialect.SQLiteDialect
+    hibernate:
+      ddl-auto: create-drop
