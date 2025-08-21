@@ -5,15 +5,23 @@ import org.springframework.web.multipart.MultipartFile;
 
 import dev.retrotv.fileserver.domain.files.dtos.InitData;
 import dev.retrotv.fileserver.domain.files.dtos.SessionIdRequest;
+import dev.retrotv.fileserver.domain.files.dtos.UploadSession;
+import dev.retrotv.framework.foundation.common.response.DataResponse;
+import dev.retrotv.framework.foundation.common.response.SingleDataResponse;
 
 import org.springframework.http.ResponseEntity;
 
 @RestController
 @RequestMapping("/api/files")
 public class FileController {
+    private final FileService fileService;
+
+    public FileController(FileService fileService) {
+        this.fileService = fileService;
+    }
 
 	@GetMapping("/download/{id}")
-	public ResponseEntity<String> downloadFile(@PathVariable String id) {
+	public ResponseEntity<String> download(@PathVariable String id) {
 		// 파일 다운로드 로직 구현 필요
 		return ResponseEntity.ok("Download file: " + id);
 	}
@@ -25,9 +33,10 @@ public class FileController {
 	}
 
 	@PostMapping("/upload/init")
-	public ResponseEntity<String> uploadInit(@RequestBody InitData initData) {
-		// 업로드 초기화 로직 구현 필요
-		return ResponseEntity.ok("Upload init: " + initData.getFileName());
+	public ResponseEntity<DataResponse<UploadSession>> uploadInit(@RequestBody InitData initData) {
+		return ResponseEntity.ok(
+			new SingleDataResponse<>(fileService.initializeUploadSession(initData))
+		);
 	}
 
 	@PostMapping("/upload/chunk")

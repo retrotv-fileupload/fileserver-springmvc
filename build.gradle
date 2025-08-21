@@ -25,8 +25,12 @@ repositories {
 }
 
 dependencies {
+	implementation 'dev.retrotv:framework.foundation.common:0.0.34-alpha'
+
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation ('org.springframework.boot:spring-boot-starter-web') {
+		exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
+	}
 	implementation 'org.springframework.boot:spring-boot-starter-undertow'
 	compileOnly 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
@@ -36,11 +40,6 @@ dependencies {
 	implementation 'org.xerial:sqlite-jdbc:3.45.2.0'
 	implementation 'com.github.f4b6a3:uuid-creator:5.3.5'
 	implementation 'org.hibernate.orm:hibernate-community-dialects:6.6.26.Final'
-	configurations {
-		compileOnly {
-			exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
-		}
-	}
 }
 
 tasks.named('test') {
