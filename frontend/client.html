@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="ko">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>청크 기반 대용량 파일 업로드</title>
+        <link rel="stylesheet" href="styles.css" />
+    </head>
+    <body>
+        <div class="container">
+            <h1>🚀 청크 기반 대용량 파일 업로드</h1>
+
+            <div class="upload-section">
+                <div class="file-input">
+                    <input type="file" id="fileInput" />
+                </div>
+
+                <div class="controls">
+                    <button id="uploadBtn" class="btn-primary" onclick="startUpload()">📤 업로드 시작</button>
+                    <button id="pauseBtn" class="btn-pause btn-disabled" onclick="togglePause()">⏸️ 일시정지</button>
+                    <button id="cancelBtn" class="btn-secondary btn-disabled" onclick="cancelUpload()">
+                        ❌ 업로드 취소
+                    </button>
+                </div>
+            </div>
+
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div id="progressFill" class="progress-fill">0%</div>
+                </div>
+
+                <div class="chunk-info">
+                    <div class="info-item">
+                        <div class="info-label">진행률</div>
+                        <div id="progressText" class="info-value">0%</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">업로드된 청크</div>
+                        <div id="chunksText" class="info-value">0 / 0</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">파일 크기</div>
+                        <div id="fileSizeText" class="info-value">-</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">상태</div>
+                        <div id="statusText" class="info-value">대기중</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="status" class="status">파일을 선택하고 업로드 시작 버튼을 클릭하세요.</div>
+
+            <div class="log" id="log"></div>
+        </div>
+
+        <script src="upload.js"></script>
+    </body>
+</html>

@@ -5,12 +5,14 @@ import org.springframework.web.multipart.MultipartFile;
 
 import dev.retrotv.fileserver.domain.files.dtos.InitData;
 import dev.retrotv.fileserver.domain.files.dtos.SessionIdRequest;
-import dev.retrotv.fileserver.domain.files.dtos.UploadSession;
-import dev.retrotv.framework.foundation.common.response.DataResponse;
+import dev.retrotv.framework.foundation.common.response.ErrorResponse;
+import dev.retrotv.framework.foundation.common.response.Response;
 import dev.retrotv.framework.foundation.common.response.SingleDataResponse;
+import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.http.ResponseEntity;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/files")
 public class FileController {
@@ -22,18 +24,24 @@ public class FileController {
 
 	@GetMapping("/download/{id}")
 	public ResponseEntity<String> download(@PathVariable String id) {
-		// 파일 다운로드 로직 구현 필요
+		log.debug("다운로드 요청된 파일 ID: {}", id);
 		return ResponseEntity.ok("Download file: " + id);
 	}
 
-	@GetMapping("/upload/status/{id}")
-	public ResponseEntity<String> uploadStatus(@PathVariable String id) {
-		// 업로드 상태 조회 로직 구현 필요
-		return ResponseEntity.ok("Upload status for: " + id);
+	@GetMapping("/upload/status/{sessionId}")
+	public ResponseEntity<Response> uploadStatus(@PathVariable String sessionId) {
+		log.debug("업로드 상태를 조회할 세션 ID: {}", sessionId);
+		if (sessionId == null || sessionId.isEmpty()) {
+			return ResponseEntity.badRequest().body(new ErrorResponse("Invalid session ID"));
+		}
+
+		return ResponseEntity.ok(
+			new SingleDataResponse<>("Upload status for: " + sessionId)
+		);
 	}
 
 	@PostMapping("/upload/init")
-	public ResponseEntity<DataResponse<UploadSession>> uploadInit(@RequestBody InitData initData) {
+	public ResponseEntity<Response> uploadInit(@RequestBody InitData initData) {
 		return ResponseEntity.ok(
 			new SingleDataResponse<>(fileService.initializeUploadSession(initData))
 		);
