@@ -5,7 +5,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import dev.retrotv.fileserver.domain.files.dtos.InitData;
 import dev.retrotv.fileserver.domain.files.dtos.SessionIdRequest;
-import dev.retrotv.framework.foundation.common.response.ErrorResponse;
 import dev.retrotv.framework.foundation.common.response.Response;
 import dev.retrotv.framework.foundation.common.response.SingleDataResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -28,13 +27,9 @@ public class FileController {
 		return ResponseEntity.ok("Download file: " + id);
 	}
 
-	@GetMapping("/upload/status/{sessionId}")
+	@GetMapping("/upload/status/{sessionId:[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}}")
 	public ResponseEntity<Response> uploadStatus(@PathVariable String sessionId) {
 		log.debug("업로드 상태를 조회할 세션 ID: {}", sessionId);
-		if (sessionId == null || sessionId.isEmpty()) {
-			return ResponseEntity.badRequest().body(new ErrorResponse("Invalid session ID"));
-		}
-
 		return ResponseEntity.ok(
 			new SingleDataResponse<>("Upload status for: " + sessionId)
 		);
