@@ -119,7 +119,12 @@ public class FileService {
         }
 
         // 청크 병합 로직
-        File mergedFile = new File("uploads/" + sessionId + "/" + session.getFileName());
+        File mergedDir = new File("uploads/" + sessionId);
+        if (!mergedDir.exists()) {
+            mergedDir.mkdirs();
+        }
+        File mergedFile = new File(mergedDir, session.getFileName());
+        
         try (OutputStream out = new FileOutputStream(mergedFile)) {
             for (int i = 0; i < session.getTotalChunks(); i++) {
                 File chunkFile = new File("uploads/" + sessionId + "/tmp/" + sessionId + "_chunk_" + String.format("%010d", i));
@@ -212,7 +217,7 @@ public class FileService {
     private String getSha256Hash(File file) {
         try (FileInputStream fis = new FileInputStream(file)) {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] buffer = new byte[8192];
+            byte[] buffer = new byte[CHUNK_SIZE];
             int bytesRead;
             while ((bytesRead = fis.read(buffer)) != -1) {
                 digest.update(buffer, 0, bytesRead);

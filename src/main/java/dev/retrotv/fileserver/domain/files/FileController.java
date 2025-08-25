@@ -17,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 @Slf4j
 @RestController
 @RequestMapping("/api/files")
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class FileController {
     private final FileService fileService;
 
@@ -63,6 +64,9 @@ public class FileController {
 	 */
 	@PostMapping("/upload/init")
 	public ResponseEntity<Response> uploadInit(@RequestBody InitData initData) {
+		log.debug("파일 업로드 초기화");
+		log.debug("파일 명: {}", initData.getFileName());
+
 		return ResponseEntity.ok(
 			new SingleDataResponse<>(fileService.initializeUploadSession(initData))
 		);

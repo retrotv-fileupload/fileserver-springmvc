@@ -10,7 +10,7 @@ let currentFile = null;
 let totalChunks = 0;
 
 const CHUNK_SIZE = 8 * 1024 * 1024; // 2MB 청크 크기
-const API_BASE = "http://localhost:3000";
+const API_BASE = "http://127.0.0.1:8080";
 
 // 로그 함수
 function log(message, type = "info") {
@@ -238,7 +238,7 @@ async function getUploadedChunks() {
     const uploadedChunks = new Set();
 
     try {
-        const statusResponse = await fetch(`${API_BASE}/api/files/upload/status?sessionId=${sessionId}`);
+        const statusResponse = await fetch(`${API_BASE}/api/files/upload/status/${sessionId}`);
         if (statusResponse.ok) {
             const statusData = await statusResponse.json();
             console.log("statusData response:", statusData);
@@ -275,7 +275,7 @@ async function verifyUploadComplete() {
     log("모든 청크 업로드 완료, 최종 상태를 확인합니다...");
 
     try {
-        const finalStatusResponse = await fetch(`${API_BASE}/api/files/upload/status?sessionId=${sessionId}`);
+        const finalStatusResponse = await fetch(`${API_BASE}/api/files/upload/status/${sessionId}`);
         if (finalStatusResponse.ok) {
             const finalStatusData = await finalStatusResponse.json();
             log(`최종 상태: ${finalStatusData.data.uploadedChunks}/${finalStatusData.data.totalChunks} 청크 업로드됨`);

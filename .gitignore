@@ -38,3 +38,9 @@ out/
 
 ### SQLite3 ###
 fileinfo.db
+
+### File ###
+uploads/
+
+### Mac OS ###
+.DS_Store
