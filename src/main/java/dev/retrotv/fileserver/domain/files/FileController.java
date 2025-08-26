@@ -49,10 +49,10 @@ public class FileController {
 	 * @return
 	 */
 	@GetMapping("/upload/status/{sessionId:[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}}")
-	public ResponseEntity<Response> uploadStatus(@PathVariable String sessionId) {
+	public ResponseEntity<Response> uploadStatus(@PathVariable UUID sessionId) {
 		log.debug("업로드 상태를 조회할 세션 ID: {}", sessionId);
 		return ResponseEntity.ok(
-			new SingleDataResponse<>("Upload status for: " + sessionId)
+			new SingleDataResponse<>(fileService.getUploadStatus(sessionId))
 		);
 	}
 

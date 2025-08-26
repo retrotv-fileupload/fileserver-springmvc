@@ -22,6 +22,7 @@ import com.github.f4b6a3.uuid.UuidCreator;
 
 import dev.retrotv.fileserver.common.exception.ChunkMergeException;
 import dev.retrotv.fileserver.common.exception.ChunkUploadException;
+import dev.retrotv.fileserver.domain.files.dtos.ChunkUploadResponse;
 import dev.retrotv.fileserver.domain.files.dtos.FileInfo;
 import dev.retrotv.fileserver.domain.files.dtos.InitData;
 import dev.retrotv.fileserver.domain.files.dtos.UploadSession;
@@ -70,7 +71,7 @@ public class FileService {
         );
     }
 
-    public boolean saveChunk(UUID sessionId, int chunkIndex, MultipartFile chunk) {
+    public ChunkUploadResponse saveChunk(UUID sessionId, int chunkIndex, MultipartFile chunk) {
         UploadSession session = uploadSessions.get(sessionId);
         if (session == null) {
             throw new IllegalArgumentException("Upload session not found");
@@ -104,7 +105,16 @@ public class FileService {
         session.getUploadedChunks().add(chunkIndex);
         session.setLastActivity(LocalDateTime.now());
 
-        return true;
+        return new ChunkUploadResponse(
+            session.getUploadedChunks().size() == session.getTotalChunks() ? StatusCode.ALL_CHUNKS_UPLOADED.getCode() : StatusCode.UPLOADING.getCode(),
+            "청크 업로드 성공",
+            true,
+            chunkIndex,
+            (session.getUploadedChunks().size() / session.getTotalChunks()) * 100,
+            session.getUploadedChunks().size(),
+            session.getTotalChunks(),
+            session.getUploadedChunks().size() == session.getTotalChunks()
+        );
     }
 
     public FileInfo mergeChunks(UUID sessionId) {

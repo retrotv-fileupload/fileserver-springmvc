@@ -3,6 +3,7 @@ package dev.retrotv.fileserver.domain.files.dtos;
 import java.io.Serializable;
 
 import dev.retrotv.fileserver.enums.StatusCode;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
@@ -11,6 +12,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 public class ChunkUploadResponse implements Serializable {
     @NonNull private String status;
     @NonNull private String message;
