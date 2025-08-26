@@ -1,9 +1,12 @@
 package dev.retrotv.fileserver.domain.files.entities;
 
 import jakarta.persistence.*;
+import lombok.EqualsAndHashCode;
+
 import java.io.Serializable;
 
 @Embeddable
+@EqualsAndHashCode
 public class MetadataId implements Serializable {
 
     @Column(name = "FILE_ID", length = 36)

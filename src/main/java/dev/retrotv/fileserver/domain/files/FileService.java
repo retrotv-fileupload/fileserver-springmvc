@@ -37,6 +37,8 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class FileService {
     private static final int CHUNK_SIZE = 8 * 1024;
+    private static final String UPLOAD_DIR = "uploads/";
+    private static final String TEMP_DIR = UPLOAD_DIR + "tmp/";
 
     private final FileRepository fileRepository;
     private final Map<UUID, UploadSession> uploadSessions;
@@ -74,28 +76,21 @@ public class FileService {
     public ChunkUploadResponse saveChunk(@NonNull UUID sessionId, int chunkIndex, @NonNull MultipartFile chunk) {
         UploadSession session = getSession(sessionId);
 
-        // 청크 저장 경로 생성 (예: /uploads/{sessionId}/tmp)
-        String uploadDir = "uploads/";
-        String tmpDir = uploadDir + "tmp/" + sessionId;
-        File dir = new File(tmpDir);
-        if (!dir.exists()) {
-            dir.mkdirs();
-        }
-
-        // 인덱스를 10자리 0으로 채움
-        String paddedIndex = String.format("%010d", chunkIndex);
-        String chunkFileName = sessionId + "_chunk_" + paddedIndex;
+        String dir = createTmpDir(sessionId);
+        String chunkFileName = createChunkFileName(chunkIndex, session);
         File chunkFile = new File(dir, chunkFileName);
 
-        try (InputStream in = chunk.getInputStream();
-            OutputStream out = new FileOutputStream(chunkFile)) {
+        try (
+            InputStream in = chunk.getInputStream();
+            OutputStream out = new FileOutputStream(chunkFile)
+        ) {
             byte[] buffer = new byte[CHUNK_SIZE];
             int len;
             while ((len = in.read(buffer)) != -1) {
                 out.write(buffer, 0, len);
             }
-        } catch (Exception e) {
-            throw new ChunkUploadException("청크 저장 실패: " + e.getMessage(), e);
+        } catch (IOException ex) {
+            throw new ChunkUploadException("청크 저장 실패: " + ex.getMessage(), ex);
         }
 
         // 청크 저장 로직 구현
@@ -263,5 +258,22 @@ public class FileService {
             }
             tmpDir.delete();
         }
+    }
+
+    // 임시 파일 저장 디렉토리 생성
+    private String createTmpDir(UUID sessionId) {
+        String tmpDirPath = TEMP_DIR + sessionId;
+        File tmpDir = new File(tmpDirPath);
+        if (!tmpDir.exists()) {
+            tmpDir.mkdirs();
+        }
+
+        return tmpDir.getPath();
+    }
+
+    // 청크 파일명 생성
+    private String createChunkFileName(int chunkIndex, UploadSession session) {
+        String paddedIndex = String.format("%010d", chunkIndex);
+        return session.getSessionId() + "_chunk_" + paddedIndex;
     }
 }
