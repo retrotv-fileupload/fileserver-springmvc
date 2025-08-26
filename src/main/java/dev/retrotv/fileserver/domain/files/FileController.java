@@ -114,6 +114,8 @@ public class FileController {
 	@DeleteMapping("/upload/cancel")
 	public ResponseEntity<Response> uploadCancel(@RequestBody SessionIdRequest request) {
 		fileService.cancelUpload(request.getSessionId());
-		return ResponseEntity.ok(new SuccessResponse("업로드가 취소되었습니다."));
+		return ResponseEntity.ok(
+			new SuccessResponse("업로드가 취소되었습니다.")
+		);
 	}
 }

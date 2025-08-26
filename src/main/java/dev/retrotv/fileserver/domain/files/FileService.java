@@ -22,6 +22,7 @@ import com.github.f4b6a3.uuid.UuidCreator;
 
 import dev.retrotv.fileserver.common.exception.ChunkMergeException;
 import dev.retrotv.fileserver.common.exception.ChunkUploadException;
+import dev.retrotv.fileserver.common.exception.SessionNotFoundException;
 import dev.retrotv.fileserver.domain.files.dtos.ChunkUploadResponse;
 import dev.retrotv.fileserver.domain.files.dtos.FileInfo;
 import dev.retrotv.fileserver.domain.files.dtos.InitData;
@@ -30,7 +31,9 @@ import dev.retrotv.fileserver.domain.files.dtos.UploadStatusResponse;
 import dev.retrotv.fileserver.domain.files.entities.FileEntity;
 import dev.retrotv.fileserver.enums.StatusCode;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 public class FileService {
     private static final int CHUNK_SIZE = 8 * 1024;
@@ -50,11 +53,8 @@ public class FileService {
         return uploadSession;
     }
 
-    public UploadStatusResponse getUploadStatus(UUID sessionId) {
-        UploadSession session = uploadSessions.get(sessionId);
-        if (session == null) {
-            throw new IllegalArgumentException("Upload session not found");
-        }
+    public UploadStatusResponse getUploadStatus(@NonNull UUID sessionId) {
+        UploadSession session = getSession(sessionId);
         
         // 세션의 마지막 활동 시간을 갱신
         session.setLastActivity(LocalDateTime.now());
@@ -71,11 +71,8 @@ public class FileService {
         );
     }
 
-    public ChunkUploadResponse saveChunk(UUID sessionId, int chunkIndex, MultipartFile chunk) {
-        UploadSession session = uploadSessions.get(sessionId);
-        if (session == null) {
-            throw new IllegalArgumentException("Upload session not found");
-        }
+    public ChunkUploadResponse saveChunk(@NonNull UUID sessionId, int chunkIndex, @NonNull MultipartFile chunk) {
+        UploadSession session = getSession(sessionId);
 
         // 청크 저장 경로 생성 (예: /uploads/{sessionId}/tmp)
         String uploadDir = "uploads/";
@@ -117,11 +114,8 @@ public class FileService {
         );
     }
 
-    public FileInfo mergeChunks(UUID sessionId) {
-        UploadSession session = uploadSessions.get(sessionId);
-        if (session == null) {
-            throw new IllegalArgumentException("Upload session not found");
-        }
+    public FileInfo mergeChunks(@NonNull UUID sessionId) {
+        UploadSession session = getSession(sessionId);
 
         // 모든 청크가 업로드되었는지 확인
         if (session.getUploadedChunks().size() != session.getTotalChunks()) {
@@ -137,7 +131,11 @@ public class FileService {
         
         try (OutputStream out = new FileOutputStream(mergedFile)) {
             for (int i = 0; i < session.getTotalChunks(); i++) {
-                File chunkFile = new File("uploads/" + sessionId + "/tmp/" + sessionId + "_chunk_" + String.format("%010d", i));
+                String chunkFileName = sessionId + "_chunk_" + String.format("%010d", i);
+
+                log.debug("청크 파일명: {}", chunkFileName);
+
+                File chunkFile = new File("uploads/tmp/" + sessionId + "/" + chunkFileName);
                 if (chunkFile.exists()) {
                     Files.copy(chunkFile.toPath(), out);
                 }
@@ -164,31 +162,23 @@ public class FileService {
             savedEntity.getMimeType()
         );
 
+        // 임시 파일 및 디렉토리 삭제
+        removeTmpFiles(sessionId);
+
         return fileInfo;
     }
 
-    public void cancelUpload(UUID sessionId) {
-        UploadSession session = uploadSessions.remove(sessionId);
-        if (session == null) {
-            throw new IllegalArgumentException("Upload session not found");
-        }
+    public void cancelUpload(@NonNull UUID sessionId) {
+        removeSession(sessionId);
 
         // 임시 파일 및 디렉토리 삭제
-        File tmpDir = new File("uploads/tmp/" + sessionId);
-        if (tmpDir.exists()) {
-            for (File file : tmpDir.listFiles()) {
-                file.delete();
-            }
-            tmpDir.delete();
-        }
+        removeTmpFiles(sessionId);
     }
 
     // 새로운 업로드 세션 생성
     private UploadSession createNewUploadSession(InitData initData) {
-        UUID sessionId = UuidCreator.getTimeOrderedEpoch();
-
         return new UploadSession(
-            sessionId,
+            UuidCreator.getTimeOrderedEpoch(), // UUID v7
             initData.getFileName(),
             StatusCode.INITIALIZED.getCode(),
             initData.getFileSize(),
@@ -224,6 +214,7 @@ public class FileService {
         );
     }
 
+    // 파일의 SHA-256 해시 값 생성
     private String getSha256Hash(File file) {
         try (FileInputStream fis = new FileInputStream(file)) {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
@@ -242,6 +233,35 @@ public class FileService {
             return sb.toString();
         } catch (Exception e) {
             throw new RuntimeException("SHA-256 해시 생성 실패: " + e.getMessage(), e);
+        }
+    }
+
+    // 업로드 세션 조회
+    private UploadSession getSession(UUID sessionId) {
+        UploadSession session = uploadSessions.get(sessionId);
+        if (session == null) {
+            throw new SessionNotFoundException();
+        }
+
+        return session;
+    }
+
+    // 업로드 세션 삭제
+    private void removeSession(UUID sessionId) {
+        UploadSession session = uploadSessions.remove(sessionId);
+        if (session == null) {
+            throw new SessionNotFoundException();
+        }
+    }
+
+    // 임시 청크 파일 삭제
+    private void removeTmpFiles(UUID sessionId) {
+        File tmpDir = new File("uploads/tmp/" + sessionId);
+        if (tmpDir.exists()) {
+            for (File file : tmpDir.listFiles()) {
+                file.delete();
+            }
+            tmpDir.delete();
         }
     }
 }
