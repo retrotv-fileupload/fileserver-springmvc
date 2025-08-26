@@ -26,7 +26,7 @@ function log(message, type = "info") {
         prefix = "ℹ️";
     }
 
-    logElement.innerHTML += `[${timestamp}] ${prefix} ${message}\n`;
+    logElement.innerHTML += `[${timestamp}] ${prefix} ${message}<br/>`;
     logElement.scrollTop = logElement.scrollHeight;
     console.log(`[${type.toUpperCase()}]`, message);
 }
