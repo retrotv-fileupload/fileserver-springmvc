@@ -16,6 +16,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.github.f4b6a3.uuid.UuidCreator;
@@ -56,21 +57,7 @@ public class FileService {
     }
 
     public UploadStatusResponse getUploadStatus(@NonNull UUID sessionId) {
-        UploadSession session = getSession(sessionId);
-        
-        // 세션의 마지막 활동 시간을 갱신
-        session.setLastActivity(LocalDateTime.now());
-        return new UploadStatusResponse(
-            sessionId,
-            session.getStatus(),
-            session.getFileName(),
-            calculateProgress(session),
-            session.getUploadedChunks().size(),
-            session.getTotalChunks(),
-            getMissingChunks(session),
-            session.getFileSize(),
-            session.getLastActivity()
-        );
+        return createUploadStatusResponse(sessionId, getSession(sessionId));
     }
 
     public ChunkUploadResponse saveChunk(@NonNull UUID sessionId, int chunkIndex, @NonNull MultipartFile chunk) {
@@ -93,28 +80,16 @@ public class FileService {
             throw new ChunkUploadException("청크 저장 실패: " + ex.getMessage(), ex);
         }
 
-        // 청크 저장 로직 구현
-        session.getUploadedChunks().add(chunkIndex);
-        session.setLastActivity(LocalDateTime.now());
-
-        return new ChunkUploadResponse(
-            session.getUploadedChunks().size() == session.getTotalChunks() ? StatusCode.ALL_CHUNKS_UPLOADED.getCode() : StatusCode.UPLOADING.getCode(),
-            "청크 업로드 성공",
-            true,
-            chunkIndex,
-            (session.getUploadedChunks().size() / session.getTotalChunks()) * 100,
-            session.getUploadedChunks().size(),
-            session.getTotalChunks(),
-            session.getUploadedChunks().size() == session.getTotalChunks()
-        );
+        return createChunkUploadResponse(chunkIndex, session);
     }
 
+    @Transactional
     public FileInfo mergeChunks(@NonNull UUID sessionId) {
         UploadSession session = getSession(sessionId);
 
         // 모든 청크가 업로드되었는지 확인
         if (session.getUploadedChunks().size() != session.getTotalChunks()) {
-            throw new IllegalStateException("모든 청크가 업로드되지 않았습니다.");
+            throw new ChunkMergeException("모든 청크가 업로드되지 않았습니다.");
         }
 
         // 청크 병합 로직
@@ -122,15 +97,16 @@ public class FileService {
         if (!mergedDir.exists()) {
             mergedDir.mkdirs();
         }
-        File mergedFile = new File(mergedDir, session.getFileName());
+        File mergedFile = new File(mergedDir, session.getSessionId().toString());
         
         try (OutputStream out = new FileOutputStream(mergedFile)) {
             for (int i = 0; i < session.getTotalChunks(); i++) {
-                String chunkFileName = sessionId + "_chunk_" + String.format("%010d", i);
+                String tmpDir = createTmpDir(sessionId);
+                String chunkFileName = createChunkFileName(i, session);
 
                 log.debug("청크 파일명: {}", chunkFileName);
 
-                File chunkFile = new File("uploads/tmp/" + sessionId + "/" + chunkFileName);
+                File chunkFile = new File(tmpDir, chunkFileName);
                 if (chunkFile.exists()) {
                     Files.copy(chunkFile.toPath(), out);
                 }
@@ -139,17 +115,9 @@ public class FileService {
             throw new ChunkMergeException("청크 병합 실패: " + e.getMessage(), e);
         }
 
-        FileEntity entity = FileEntity.builder()
-            .id(sessionId)
-            .originalFileName(session.getFileName())
-            .fileName(session.getFileName())
-            .filePath("uploads/" + sessionId + "/" + session.getFileName())
-            .mimeType(session.getMimeType())
-            .size(session.getFileSize())
-            .hash(getSha256Hash(mergedFile))
-            .build();
-
-        FileEntity savedEntity = fileRepository.save(entity);
+        FileEntity savedEntity = fileRepository.save(
+            new FileEntity(sessionId, session, getSha256Hash(mergedFile))
+        );
         FileInfo fileInfo = new FileInfo(
             savedEntity.getId(),
             savedEntity.getOriginalFileName(),
@@ -275,5 +243,39 @@ public class FileService {
     private String createChunkFileName(int chunkIndex, UploadSession session) {
         String paddedIndex = String.format("%010d", chunkIndex);
         return session.getSessionId() + "_chunk_" + paddedIndex;
+    }
+
+    // 업로드 상태 응답 생성
+    private UploadStatusResponse createUploadStatusResponse(UUID sessionId, UploadSession session) {
+
+        // 세션의 마지막 활동 시간을 갱신
+        session.setLastActivity(LocalDateTime.now());
+        return new UploadStatusResponse(
+            sessionId,
+            session.getStatus(),
+            session.getFileName(),
+            calculateProgress(session),
+            session.getUploadedChunks().size(),
+            session.getTotalChunks(),
+            getMissingChunks(session),
+            session.getFileSize(),
+            session.getLastActivity()
+        );
+    }
+
+    private ChunkUploadResponse createChunkUploadResponse(int chunkIndex, UploadSession session) {
+        session.getUploadedChunks().add(chunkIndex);
+        session.setLastActivity(LocalDateTime.now());
+
+        return new ChunkUploadResponse(
+            session.getUploadedChunks().size() == session.getTotalChunks() ? StatusCode.ALL_CHUNKS_UPLOADED.getCode() : StatusCode.UPLOADING.getCode(),
+            "청크 업로드 성공",
+            true,
+            chunkIndex,
+            (session.getUploadedChunks().size() / session.getTotalChunks()) * 100,
+            session.getUploadedChunks().size(),
+            session.getTotalChunks(),
+            session.getUploadedChunks().size() == session.getTotalChunks()
+        );
     }
 }
