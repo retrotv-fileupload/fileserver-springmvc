@@ -320,7 +320,7 @@ async function completeUpload() {
     }
 
     updateStatus(`업로드 완료! 파일 ID: ${result.data.id}`, "success");
-    log(`✅ 업로드 성공! 파일 ID: ${result.data.id}`, "success");
+    log(`업로드 성공! 파일 ID: ${result.data.id}`, "success");
 }
 
 // 실제 청크 업로드 수행 함수

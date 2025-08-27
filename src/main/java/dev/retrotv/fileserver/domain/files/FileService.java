@@ -24,6 +24,7 @@ import com.github.f4b6a3.uuid.UuidCreator;
 import dev.retrotv.fileserver.common.exception.ChunkMergeException;
 import dev.retrotv.fileserver.common.exception.ChunkUploadException;
 import dev.retrotv.fileserver.common.exception.SessionNotFoundException;
+import dev.retrotv.fileserver.common.properties.FileServerProperties;
 import dev.retrotv.fileserver.domain.files.dtos.ChunkUploadResponse;
 import dev.retrotv.fileserver.domain.files.dtos.FileInfo;
 import dev.retrotv.fileserver.domain.files.dtos.InitData;
@@ -37,16 +38,14 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service
 public class FileService {
-    private static final int CHUNK_SIZE = 8 * 1024;
-    private static final String UPLOAD_DIR = "uploads/";
-    private static final String TEMP_DIR = UPLOAD_DIR + "tmp/";
-
     private final FileRepository fileRepository;
     private final Map<UUID, UploadSession> uploadSessions;
+    private final FileServerProperties fileServerProperties;
 
-    public FileService(FileRepository fileRepository) {
+    public FileService(FileRepository fileRepository, FileServerProperties fileServerProperties) {
         this.fileRepository = fileRepository;
         this.uploadSessions = new HashMap<>();
+        this.fileServerProperties = fileServerProperties;
     }
 
     public UploadSession initializeUploadSession(@NonNull InitData initData) {
@@ -71,7 +70,7 @@ public class FileService {
             InputStream in = chunk.getInputStream();
             OutputStream out = new FileOutputStream(chunkFile)
         ) {
-            byte[] buffer = new byte[CHUNK_SIZE];
+            byte[] buffer = new byte[fileServerProperties.getChunkSize()];
             int len;
             while ((len = in.read(buffer)) != -1) {
                 out.write(buffer, 0, len);
@@ -93,7 +92,7 @@ public class FileService {
         }
 
         // 청크 병합 로직
-        File mergedDir = new File("uploads/" + sessionId);
+        File mergedDir = new File(fileServerProperties.getUploadDir() + sessionId);
         if (!mergedDir.exists()) {
             mergedDir.mkdirs();
         }
@@ -181,7 +180,7 @@ public class FileService {
     private String getSha256Hash(File file) {
         try (FileInputStream fis = new FileInputStream(file)) {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] buffer = new byte[CHUNK_SIZE];
+            byte[] buffer = new byte[fileServerProperties.getChunkSize()];
             int bytesRead;
             while ((bytesRead = fis.read(buffer)) != -1) {
                 digest.update(buffer, 0, bytesRead);
@@ -219,7 +218,7 @@ public class FileService {
 
     // 임시 청크 파일 삭제
     private void removeTmpFiles(UUID sessionId) {
-        File tmpDir = new File("uploads/tmp/" + sessionId);
+        File tmpDir = new File(fileServerProperties.getTempDir() + sessionId);
         if (tmpDir.exists()) {
             for (File file : tmpDir.listFiles()) {
                 file.delete();
@@ -230,7 +229,7 @@ public class FileService {
 
     // 임시 파일 저장 디렉토리 생성
     private String createTmpDir(UUID sessionId) {
-        String tmpDirPath = TEMP_DIR + sessionId;
+        String tmpDirPath = fileServerProperties.getTempDir() + sessionId;
         File tmpDir = new File(tmpDirPath);
         if (!tmpDir.exists()) {
             tmpDir.mkdirs();
@@ -241,7 +240,10 @@ public class FileService {
 
     // 청크 파일명 생성
     private String createChunkFileName(int chunkIndex, UploadSession session) {
-        String paddedIndex = String.format("%010d", chunkIndex);
+        int totalChunks = session.getTotalChunks();
+        int padLength = String.valueOf(totalChunks).length();
+        String paddedIndex = String.format("%0" + padLength + "d", chunkIndex);
+
         return session.getSessionId() + "_chunk_" + paddedIndex;
     }
 

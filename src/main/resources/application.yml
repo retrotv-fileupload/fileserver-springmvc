@@ -13,3 +13,8 @@ spring:
     multipart:
       max-file-size: -1
       max-request-size: -1
+
+fileserver:
+  chunk-size: 8192
+  upload-dir: uploads/
+  temp-dir: temp/

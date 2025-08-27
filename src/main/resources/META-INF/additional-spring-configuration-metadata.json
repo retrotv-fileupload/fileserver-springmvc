@@ -1,0 +1,19 @@
+{
+  "properties": [
+    {
+      "name": "fileserver.chunk-size",
+      "type": "java.lang.Integer",
+      "description": "업로드시 청크 크기"
+    },
+    {
+      "name": "fileserver.upload-dir",
+      "type": "java.lang.String",
+      "description": "파일 저장 경로"
+    },
+    {
+      "name": "fileserver.temp-dir",
+      "type": "java.lang.String",
+      "description": "임시 파일 저장 경로"
+    }
+  ]
+}
