@@ -4,11 +4,11 @@ import jakarta.persistence.*;
 
 @Entity
 @Table(name = "FILE_METADATA")
-public class MetadataEntity {
+public class TagEntity {
 
 	@EmbeddedId
-	private MetadataId id;
+	private TagId id;
 
-	@Column(name = "META_VALUE", length = 1024)
-	private String metaValue;
+	@Column(name = "VALUE", length = 1024)
+	private String value;
 }

@@ -1,6 +1,7 @@
 package dev.retrotv.fileserver.domain.files.dtos;
 
 import java.io.Serializable;
+import java.util.List;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,4 +17,5 @@ public class InitData implements Serializable {
     private int totalChunks;
     private String subDir;
     private String mimeType;
+    private List<Tag> tags;
 }

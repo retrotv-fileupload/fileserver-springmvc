@@ -7,17 +7,18 @@ import java.io.Serializable;
 
 @Embeddable
 @EqualsAndHashCode
-public class MetadataId implements Serializable {
+public class TagId implements Serializable {
 
     @Column(name = "FILE_ID", length = 36)
     private String fileId;
 
-    @Column(name = "META_KEY", length = 128)
-    private String metaKey;
+    @Column(name = "KEY", length = 128)
+    private String key;
 
-    public MetadataId() {}
-    public MetadataId(String fileId, String metaKey) {
+    public TagId() {}
+
+    public TagId(String fileId, String key) {
         this.fileId = fileId;
-        this.metaKey = metaKey;
+        this.key = key;
     }
 }

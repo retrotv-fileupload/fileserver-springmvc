@@ -126,7 +126,8 @@ public class FileService {
             savedEntity.getId(),
             savedEntity.getOriginalFileName(),
             savedEntity.getSize(),
-            savedEntity.getMimeType()
+            savedEntity.getMimeType(),
+            null
         );
 
         // 임시 파일 및 디렉토리 삭제
@@ -152,6 +153,7 @@ public class FileService {
             initData.getTotalChunks(),
             initData.getMimeType(),
             initData.getSubDir(),
+            initData.getTags(),
             new HashSet<>(),
             LocalDateTime.now(),
             LocalDateTime.now()

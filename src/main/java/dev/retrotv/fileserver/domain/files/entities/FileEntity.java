@@ -9,8 +9,8 @@ import java.util.UUID;
 
 import dev.retrotv.fileserver.domain.files.dtos.UploadSession;
 
-@Entity
 @Getter
+@Entity
 @Table(name = "FILES")
 public class FileEntity {
 	public FileEntity() {}
@@ -67,7 +67,7 @@ public class FileEntity {
 
 	@JoinColumn(name = "FILE_ID")
 	@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-	private List<MetadataEntity> metadata;
+	private List<TagEntity> tags;
 
 	@PrePersist
 	public void insertTimeStamp() {
