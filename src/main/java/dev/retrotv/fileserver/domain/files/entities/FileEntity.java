@@ -15,11 +15,11 @@ import dev.retrotv.fileserver.domain.files.dtos.UploadSession;
 public class FileEntity {
 	public FileEntity() {}
 
-	public FileEntity(UUID sessionId, UploadSession session, String hash) {
+	public FileEntity(UUID sessionId, String filePath, String hash, UploadSession session) {
 		this.id = sessionId;
 		this.originalFileName = session.getFileName();
 		this.fileName = sessionId.toString();
-		this.filePath = "uploads/" + sessionId + "/";
+		this.filePath = filePath;
 		this.mimeType = session.getMimeType();
 		this.size = session.getFileSize();
 		this.hash = hash;

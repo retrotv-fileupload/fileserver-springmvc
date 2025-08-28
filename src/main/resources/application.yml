@@ -17,4 +17,4 @@ spring:
 fileserver:
   chunk-size: 8192
   upload-dir: uploads/
-  temp-dir: temp/
+  temp-dir: tmp/

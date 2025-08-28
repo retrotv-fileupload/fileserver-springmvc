@@ -115,7 +115,12 @@ public class FileService {
         }
 
         FileEntity savedEntity = fileRepository.save(
-            new FileEntity(sessionId, session, getSha256Hash(mergedFile))
+            new FileEntity(
+                sessionId,
+                mergedDir.getPath(),
+                getSha256Hash(mergedFile),
+                session
+            )
         );
         FileInfo fileInfo = new FileInfo(
             savedEntity.getId(),
