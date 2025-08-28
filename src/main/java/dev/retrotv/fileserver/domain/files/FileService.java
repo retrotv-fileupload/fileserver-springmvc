@@ -30,12 +30,10 @@ import dev.retrotv.fileserver.common.properties.FileServerProperties;
 import dev.retrotv.fileserver.domain.files.dtos.ChunkUploadResponse;
 import dev.retrotv.fileserver.domain.files.dtos.FileInfo;
 import dev.retrotv.fileserver.domain.files.dtos.InitData;
-import dev.retrotv.fileserver.domain.files.dtos.Tag;
 import dev.retrotv.fileserver.domain.files.dtos.UploadSession;
 import dev.retrotv.fileserver.domain.files.dtos.UploadStatusResponse;
 import dev.retrotv.fileserver.domain.files.entities.FileEntity;
 import dev.retrotv.fileserver.domain.files.entities.TagEntity;
-import dev.retrotv.fileserver.domain.files.entities.TagId;
 import dev.retrotv.fileserver.enums.StatusCode;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -47,12 +45,24 @@ public class FileService {
     private final Map<UUID, UploadSession> uploadSessions;
     private final FileServerProperties fileServerProperties;
 
+    /**
+     * FileService 생성자
+     * 
+     * @param fileRepository FileRepository 객체
+     * @param fileServerProperties FileServerProperties 객체
+     */
     public FileService(FileRepository fileRepository, FileServerProperties fileServerProperties) {
         this.fileRepository = fileRepository;
         this.uploadSessions = new HashMap<>();
         this.fileServerProperties = fileServerProperties;
     }
 
+    /**
+     * 업로드 세션 초기화
+     * 
+     * @param initData 세션 초기화 정보
+     * @return
+     */
     public UploadSession initializeUploadSession(@NonNull InitData initData) {
         UploadSession uploadSession = createNewUploadSession(initData);
         uploadSessions.put(uploadSession.getSessionId(), uploadSession);
@@ -60,10 +70,24 @@ public class FileService {
         return uploadSession;
     }
 
+    /**
+     * 업로드 상태 조회
+     * 
+     * @param sessionId 세션 ID
+     * @return
+     */
     public UploadStatusResponse getUploadStatus(@NonNull UUID sessionId) {
         return createUploadStatusResponse(sessionId, getSession(sessionId));
     }
 
+    /**
+     * 청크 파일 저장
+     * 
+     * @param sessionId 세션 ID
+     * @param chunkIndex 청크 인덱스
+     * @param chunk 청크 파일
+     * @return
+     */
     public ChunkUploadResponse saveChunk(@NonNull UUID sessionId, int chunkIndex, @NonNull MultipartFile chunk) {
         UploadSession session = getSession(sessionId);
 
@@ -87,6 +111,12 @@ public class FileService {
         return createChunkUploadResponse(chunkIndex, session);
     }
 
+    /**
+     * 청크 병합
+     * 
+     * @param sessionId 세션 ID
+     * @return
+     */
     @Transactional
     public FileInfo mergeChunks(@NonNull UUID sessionId) {
         UploadSession session = getSession(sessionId);
@@ -96,51 +126,11 @@ public class FileService {
             throw new ChunkMergeException("모든 청크가 업로드되지 않았습니다.");
         }
 
-        // 청크 병합 로직
-        File mergedDir = new File(fileServerProperties.getUploadDir() + sessionId);
-        if (!mergedDir.exists()) {
-            mergedDir.mkdirs();
-        }
-        File mergedFile = new File(mergedDir, session.getSessionId().toString());
-        
-        try (OutputStream out = new FileOutputStream(mergedFile)) {
-            for (int i = 0; i < session.getTotalChunks(); i++) {
-                String tmpDir = createTmpDir(sessionId);
-                String chunkFileName = createChunkFileName(i, session);
+        // 청크 병합
+        File mergedFile = merge(sessionId);
 
-                log.debug("청크 파일명: {}", chunkFileName);
-
-                File chunkFile = new File(tmpDir, chunkFileName);
-                if (chunkFile.exists()) {
-                    Files.copy(chunkFile.toPath(), out);
-                }
-            }
-        } catch (IOException e) {
-            throw new ChunkMergeException("청크 병합 실패: " + e.getMessage(), e);
-        }
-
-        List<TagEntity> tags = session.getTags()
-                                      .stream()
-                                      .map(
-                                          tag -> new TagEntity(new TagId(sessionId, tag.getKey()), tag.getValue())).collect(Collectors.toList()
-                                      );
-        
-        FileEntity savedEntity = fileRepository.save(
-            new FileEntity(
-                sessionId,
-                mergedDir.getPath(),
-                getSha256Hash(mergedFile),
-                tags,
-                session
-            )
-        );
-        FileInfo fileInfo = new FileInfo(
-            savedEntity.getId(),
-            savedEntity.getOriginalFileName(),
-            savedEntity.getSize(),
-            savedEntity.getMimeType(),
-            tags.stream().map(tag -> new Tag(tag.getId().getKey(), tag.getValue())).collect(Collectors.toList())
-        );
+        // 데이터베이스에 파일 정보 저장
+        FileInfo fileInfo = saveFileInfo(sessionId, mergedFile);
 
         // 임시 파일 및 디렉토리 삭제
         removeTmpFiles(sessionId);
@@ -148,6 +138,11 @@ public class FileService {
         return fileInfo;
     }
 
+    /**
+     * 업로드 취소
+     * 
+     * @param sessionId 취소할 세션 ID
+     */
     public void cancelUpload(@NonNull UUID sessionId) {
         removeSession(sessionId);
 
@@ -297,6 +292,67 @@ public class FileService {
             session.getUploadedChunks().size(),
             session.getTotalChunks(),
             session.getUploadedChunks().size() == session.getTotalChunks()
+        );
+    }
+
+    private File merge(UUID sessionId) {
+        UploadSession session = getSession(sessionId);
+
+        // 청크 병합 로직
+        File mergedDir = new File(fileServerProperties.getUploadDir());
+        if (!mergedDir.exists()) {
+            mergedDir.mkdirs();
+        }
+        File mergedFile = new File(mergedDir, session.getSessionId().toString());
+        
+        try (OutputStream out = new FileOutputStream(mergedFile)) {
+            for (int i = 0; i < session.getTotalChunks(); i++) {
+                String tmpDir = createTmpDir(sessionId);
+                String chunkFileName = createChunkFileName(i, session);
+
+                log.debug("청크 파일명: {}", chunkFileName);
+
+                File chunkFile = new File(tmpDir, chunkFileName);
+                if (chunkFile.exists()) {
+                    Files.copy(chunkFile.toPath(), out);
+                }
+            };
+
+            return mergedFile;
+        } catch (IOException e) {
+            throw new ChunkMergeException("청크 병합 실패: " + e.getMessage(), e);
+        }
+    }
+
+    private FileInfo saveFileInfo(UUID sessionId, File mergedFile) {
+        UploadSession session = getSession(sessionId);
+
+        // 파일 태그 엔티티 리스트 생성
+        List<TagEntity> tags = session.getTags() == null ? null :
+                                      session.getTags()
+                                          .stream()
+                                          .map(
+                                              tag -> tag.toEntity(sessionId)).collect(Collectors.toList()
+                                          );
+        
+        // 파일 엔티티 생성
+        FileEntity savedEntity = fileRepository.save(
+            new FileEntity(
+                sessionId,
+                mergedFile.getPath(),
+                getSha256Hash(mergedFile),
+                tags,
+                session
+            )
+        );
+
+        // 파일 정보 반환
+        return new FileInfo(
+            savedEntity.getId(),
+            savedEntity.getOriginalFileName(),
+            savedEntity.getSize(),
+            savedEntity.getMimeType(),
+            session.getTags()
         );
     }
 }
