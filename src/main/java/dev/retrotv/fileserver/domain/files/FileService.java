@@ -24,7 +24,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.github.f4b6a3.uuid.UuidCreator;
 
 import dev.retrotv.fileserver.common.exception.ChunkMergeException;
-import dev.retrotv.fileserver.common.exception.ChunkUploadException;
+import dev.retrotv.fileserver.common.exception.ChunkSaveException;
 import dev.retrotv.fileserver.common.exception.SessionNotFoundException;
 import dev.retrotv.fileserver.common.properties.FileServerProperties;
 import dev.retrotv.fileserver.domain.files.dtos.ChunkUploadResponse;
@@ -89,26 +89,8 @@ public class FileService {
      * @return
      */
     public ChunkUploadResponse saveChunk(@NonNull UUID sessionId, int chunkIndex, @NonNull MultipartFile chunk) {
-        UploadSession session = getSession(sessionId);
-
-        String dir = createTmpDir(sessionId);
-        String chunkFileName = createChunkFileName(chunkIndex, session);
-        File chunkFile = new File(dir, chunkFileName);
-
-        try (
-            InputStream in = chunk.getInputStream();
-            OutputStream out = new FileOutputStream(chunkFile)
-        ) {
-            byte[] buffer = new byte[fileServerProperties.getChunkSize()];
-            int len;
-            while ((len = in.read(buffer)) != -1) {
-                out.write(buffer, 0, len);
-            }
-        } catch (IOException ex) {
-            throw new ChunkUploadException("청크 저장 실패: " + ex.getMessage(), ex);
-        }
-
-        return createChunkUploadResponse(chunkIndex, session);
+        saveChunkFile(sessionId, chunkIndex, chunk);
+        return createChunkUploadResponse(sessionId, chunkIndex);
     }
 
     /**
@@ -279,7 +261,9 @@ public class FileService {
         );
     }
 
-    private ChunkUploadResponse createChunkUploadResponse(int chunkIndex, UploadSession session) {
+    private ChunkUploadResponse createChunkUploadResponse(UUID sessionId, int chunkIndex) {
+        UploadSession session = getSession(sessionId);
+
         session.getUploadedChunks().add(chunkIndex);
         session.setLastActivity(LocalDateTime.now());
 
@@ -354,5 +338,27 @@ public class FileService {
             savedEntity.getMimeType(),
             session.getTags()
         );
+    }
+
+    // 청크 Multipart를 파일로 저장
+    private void saveChunkFile(UUID sessionId, int chunkIndex, MultipartFile chunk) {
+        UploadSession session = getSession(sessionId);
+
+        String dir = createTmpDir(sessionId);
+        String chunkFileName = createChunkFileName(chunkIndex, session);
+        File chunkFile = new File(dir, chunkFileName);
+
+        try (
+            InputStream in = chunk.getInputStream();
+            OutputStream out = new FileOutputStream(chunkFile)
+        ) {
+            byte[] buffer = new byte[fileServerProperties.getChunkSize()];
+            int len;
+            while ((len = in.read(buffer)) != -1) {
+                out.write(buffer, 0, len);
+            }
+        } catch (IOException ex) {
+            throw new ChunkSaveException("청크 저장 실패: " + ex.getMessage(), ex);
+        }
     }
 }
