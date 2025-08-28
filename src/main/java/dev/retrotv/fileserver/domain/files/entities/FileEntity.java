@@ -25,6 +25,17 @@ public class FileEntity {
 		this.hash = hash;
 	}
 
+	public FileEntity(UUID sessionId, String filePath, String hash, List<TagEntity> tags, UploadSession session) {
+		this.id = sessionId;
+		this.originalFileName = session.getFileName();
+		this.fileName = sessionId.toString();
+		this.filePath = filePath;
+		this.mimeType = session.getMimeType();
+		this.size = session.getFileSize();
+		this.hash = hash;
+		this.tags = tags;
+	}
+
 	@Id
 	@Column(name = "ID", length = 36)
 	private UUID id;

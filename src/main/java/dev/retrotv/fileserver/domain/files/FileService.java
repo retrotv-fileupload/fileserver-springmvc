@@ -11,9 +11,11 @@ import java.security.MessageDigest;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,9 +30,12 @@ import dev.retrotv.fileserver.common.properties.FileServerProperties;
 import dev.retrotv.fileserver.domain.files.dtos.ChunkUploadResponse;
 import dev.retrotv.fileserver.domain.files.dtos.FileInfo;
 import dev.retrotv.fileserver.domain.files.dtos.InitData;
+import dev.retrotv.fileserver.domain.files.dtos.Tag;
 import dev.retrotv.fileserver.domain.files.dtos.UploadSession;
 import dev.retrotv.fileserver.domain.files.dtos.UploadStatusResponse;
 import dev.retrotv.fileserver.domain.files.entities.FileEntity;
+import dev.retrotv.fileserver.domain.files.entities.TagEntity;
+import dev.retrotv.fileserver.domain.files.entities.TagId;
 import dev.retrotv.fileserver.enums.StatusCode;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -114,11 +119,18 @@ public class FileService {
             throw new ChunkMergeException("청크 병합 실패: " + e.getMessage(), e);
         }
 
+        List<TagEntity> tags = session.getTags()
+                                      .stream()
+                                      .map(
+                                          tag -> new TagEntity(new TagId(sessionId, tag.getKey()), tag.getValue())).collect(Collectors.toList()
+                                      );
+        
         FileEntity savedEntity = fileRepository.save(
             new FileEntity(
                 sessionId,
                 mergedDir.getPath(),
                 getSha256Hash(mergedFile),
+                tags,
                 session
             )
         );
@@ -127,7 +139,7 @@ public class FileService {
             savedEntity.getOriginalFileName(),
             savedEntity.getSize(),
             savedEntity.getMimeType(),
-            null
+            tags.stream().map(tag -> new Tag(tag.getId().getKey(), tag.getValue())).collect(Collectors.toList())
         );
 
         // 임시 파일 및 디렉토리 삭제
