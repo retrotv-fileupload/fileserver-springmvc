@@ -8,13 +8,11 @@ import dev.retrotv.fileserver.domain.files.dtos.SessionIdRequest;
 import dev.retrotv.framework.foundation.common.response.Response;
 import dev.retrotv.framework.foundation.common.response.SingleDataResponse;
 import dev.retrotv.framework.foundation.common.response.SuccessResponse;
-import lombok.extern.slf4j.Slf4j;
 
 import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
 
-@Slf4j
 @RestController
 @RequestMapping("/api/files")
 @CrossOrigin(origins = "*", allowedHeaders = "*")
@@ -38,7 +36,6 @@ public class FileController {
 	 */
 	@GetMapping("/download/{id}")
 	public ResponseEntity<String> download(@PathVariable String id) {
-		log.debug("다운로드 요청된 파일 ID: {}", id);
 		return ResponseEntity.ok("Download file: " + id);
 	}
 
@@ -50,7 +47,6 @@ public class FileController {
 	 */
 	@GetMapping("/upload/status/{sessionId:[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}}")
 	public ResponseEntity<Response> uploadStatus(@PathVariable UUID sessionId) {
-		log.debug("업로드 상태를 조회할 세션 ID: {}", sessionId);
 		return ResponseEntity.ok(
 			new SingleDataResponse<>(fileService.getUploadStatus(sessionId))
 		);
@@ -64,9 +60,6 @@ public class FileController {
 	 */
 	@PostMapping("/upload/init")
 	public ResponseEntity<Response> uploadInit(@RequestBody InitData initData) {
-		log.debug("파일 업로드 초기화");
-		log.debug("파일 명: {}", initData.getFileName());
-
 		return ResponseEntity.ok(
 			new SingleDataResponse<>(fileService.initializeUploadSession(initData))
 		);
