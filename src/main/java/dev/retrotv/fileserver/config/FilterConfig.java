@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import dev.retrotv.fileserver.common.filter.RequestLoggingFilter;
+import dev.retrotv.fileserver.common.filter.ResponseLoggingFilter;
 
 @Configuration
 public class FilterConfig {
@@ -14,7 +15,16 @@ public class FilterConfig {
         FilterRegistrationBean<RequestLoggingFilter> registrationBean = new FilterRegistrationBean<>();
         registrationBean.setFilter(new RequestLoggingFilter());
         registrationBean.addUrlPatterns("/api/*");
-        registrationBean.setOrder(1); // 필터 순서 (필요시 조정)
+        registrationBean.setOrder(1);
+        return registrationBean;
+    }
+
+    @Bean
+    public FilterRegistrationBean<ResponseLoggingFilter> responseLoggingFilter() {
+        FilterRegistrationBean<ResponseLoggingFilter> registrationBean = new FilterRegistrationBean<>();
+        registrationBean.setFilter(new ResponseLoggingFilter());
+        registrationBean.addUrlPatterns("/api/*");
+        registrationBean.setOrder(2);
         return registrationBean;
     }
 }
