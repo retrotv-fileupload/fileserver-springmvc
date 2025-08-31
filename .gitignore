@@ -45,3 +45,6 @@ tmp/
 
 ### Mac OS ###
 .DS_Store
+
+### log ###
+logs/
