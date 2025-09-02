@@ -9,5 +9,4 @@ class FileserverApplicationTests {
 	@Test
 	void contextLoads() {
 	}
-
 }

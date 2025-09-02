@@ -69,17 +69,17 @@ public class ResponseLoggingFilter extends OncePerRequestFilter {
                 String jsonContentString = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonObject);
 
                 log.debug(
-                     """
-                     \n
-                     ========================================================================================================
-                     {}
-                     
-                     Payload:
-                     {}
-                     ========================================================================================================
-                     """
-                   , prefix
-                   , jsonContentString
+                      """
+                      \n
+                      ========================================================================================================
+                      {}
+                      
+                      Payload:
+                      {}
+                      ========================================================================================================
+                      """
+                    , prefix
+                    , jsonContentString
                 );
             }
         } else {

@@ -61,7 +61,7 @@ public class FileService {
      * 업로드 세션 초기화
      * 
      * @param initData 세션 초기화 정보
-     * @return
+     * @return 업로드 세션
      */
     public UploadSession initializeUploadSession(@NonNull InitData initData) {
         UploadSession uploadSession = createNewUploadSession(initData);
@@ -74,10 +74,10 @@ public class FileService {
      * 업로드 상태 조회
      * 
      * @param sessionId 세션 ID
-     * @return
+     * @return 업로드 상태 응답
      */
     public UploadStatusResponse getUploadStatus(@NonNull UUID sessionId) {
-        return createUploadStatusResponse(sessionId, getSession(sessionId));
+        return createUploadStatusResponse(sessionId);
     }
 
     /**
@@ -86,7 +86,7 @@ public class FileService {
      * @param sessionId 세션 ID
      * @param chunkIndex 청크 인덱스
      * @param chunk 청크 파일
-     * @return
+     * @return 청크 업로드 응답
      */
     public ChunkUploadResponse saveChunk(@NonNull UUID sessionId, int chunkIndex, @NonNull MultipartFile chunk) {
         saveChunkFile(sessionId, chunkIndex, chunk);
@@ -97,7 +97,7 @@ public class FileService {
      * 청크 병합
      * 
      * @param sessionId 세션 ID
-     * @return
+     * @return 파일 정보
      */
     @Transactional
     public FileInfo mergeChunks(@NonNull UUID sessionId) {
@@ -235,7 +235,7 @@ public class FileService {
     }
 
     // 청크 파일명 생성
-    private String createChunkFileName(int chunkIndex, UploadSession session) {
+    private String createChunkFileName(UploadSession session, int chunkIndex) {
         int totalChunks = session.getTotalChunks();
         int padLength = String.valueOf(totalChunks).length();
         String paddedIndex = String.format("%0" + padLength + "d", chunkIndex);
@@ -244,7 +244,8 @@ public class FileService {
     }
 
     // 업로드 상태 응답 생성
-    private UploadStatusResponse createUploadStatusResponse(UUID sessionId, UploadSession session) {
+    private UploadStatusResponse createUploadStatusResponse(UUID sessionId) {
+        UploadSession session = getSession(sessionId);
 
         // 세션의 마지막 활동 시간을 갱신
         session.setLastActivity(LocalDateTime.now());
@@ -292,7 +293,7 @@ public class FileService {
         try (OutputStream out = new FileOutputStream(mergedFile)) {
             for (int i = 0; i < session.getTotalChunks(); i++) {
                 String tmpDir = createTmpDir(sessionId);
-                String chunkFileName = createChunkFileName(i, session);
+                String chunkFileName = createChunkFileName(session, i);
 
                 log.debug("청크 파일명: {}", chunkFileName);
 
@@ -345,7 +346,7 @@ public class FileService {
         UploadSession session = getSession(sessionId);
 
         String dir = createTmpDir(sessionId);
-        String chunkFileName = createChunkFileName(chunkIndex, session);
+        String chunkFileName = createChunkFileName(session, chunkIndex);
         File chunkFile = new File(dir, chunkFileName);
 
         try (
