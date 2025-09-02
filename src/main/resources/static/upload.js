@@ -107,10 +107,10 @@ function startStatusMonitoring() {
         if (!sessionId) return;
 
         try {
-            const response = await fetch(`${API_BASE}/api/files/upload/status/${sessionId}`);
+            const response = await fetch(`${API_BASE}/api/v1/files/upload/status/${sessionId}`);
             const result = await response.json();
 
-            console.log(`/api/files/upload/status/${sessionId} 결과:`, result);
+            console.log(`/api/v1/files/upload/status/${sessionId} 결과:`, result);
 
             if (response.ok) {
                 updateProgress(result.data.progress, result.data.uploadedChunks, result.data.totalChunks);
@@ -167,7 +167,7 @@ async function startUpload() {
         // 1. 업로드 초기화
         updateStatus("업로드 세션을 초기화하는 중...");
 
-        const response = await fetch(`${API_BASE}/api/files/upload/init`, {
+        const response = await fetch(`${API_BASE}/api/v1/files/upload/init`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -179,7 +179,7 @@ async function startUpload() {
         });
         const result = await response.json();
 
-        console.log("/api/files/upload/init 결과: ", result);
+        console.log("/api/v1/files/upload/init 결과: ", result);
 
         if (!response.ok) {
             throw new Error(result.error || "초기화 실패");
@@ -240,10 +240,10 @@ async function getUploadedChunks() {
     const uploadedChunks = new Set();
 
     try {
-        const response = await fetch(`${API_BASE}/api/files/upload/status/${sessionId}`);
+        const response = await fetch(`${API_BASE}/api/v1/files/upload/status/${sessionId}`);
         if (response.ok) {
             const result = await response.json();
-            console.log("/api/files/upload/status/{sessionId} 결과: ", result);
+            console.log("/api/v1/files/upload/status/{sessionId} 결과: ", result);
 
             log(`상태 조회: ${result.data.uploadedChunks}/${result.data.totalChunks} 청크 업로드됨`);
             log(`누락된 청크 개수: ${result.data.missingChunks ? result.data.missingChunks.length : 0}`);
@@ -277,11 +277,11 @@ async function verifyUploadComplete() {
     log("모든 청크 업로드 완료, 최종 상태를 확인합니다...");
 
     try {
-        const response = await fetch(`${API_BASE}/api/files/upload/status/${sessionId}`);
+        const response = await fetch(`${API_BASE}/api/v1/files/upload/status/${sessionId}`);
         if (response.ok) {
             const result = await response.json();
 
-            console.log("/api/files/upload/status/{sessionId} 결과: ", result)
+            console.log("/api/v1/files/upload/status/{sessionId} 결과: ", result)
 
             log(`최종 상태: ${result.data.uploadedChunks}/${result.data.totalChunks} 청크 업로드됨`);
 
@@ -306,14 +306,14 @@ async function completeUpload() {
     updateStatus("파일 병합 중...");
     log("모든 청크 업로드 완료, 파일 병합을 시작합니다...");
 
-    const response = await fetch(`${API_BASE}/api/files/upload/complete`, {
+    const response = await fetch(`${API_BASE}/api/v1/files/upload/complete`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sessionId }),
     });
     const result = await response.json();
 
-    console.log("/api/files/upload/complete 결과: ", result);
+    console.log("/api/v1/files/upload/complete 결과: ", result);
 
     if (!response.ok) {
         throw new Error(result.error || `HTTP ${response.status}: 완료 처리 실패`);
@@ -397,14 +397,14 @@ async function uploadSingleChunk(chunkIndex) {
         }
 
         try {
-            const response = await fetch(`${API_BASE}/api/files/upload/chunk`, {
+            const response = await fetch(`${API_BASE}/api/v1/files/upload/chunk`, {
                 method: "POST",
                 body: formData,
                 signal: uploadController.signal,
             });
             const result = await response.json();
 
-            console.log("/api/files/upload/chunk 결과: ", result);
+            console.log("/api/v1/files/upload/chunk 결과: ", result);
 
             if (!response.ok) {
                 throw new Error(result.error || `HTTP ${response.status}: 청크 업로드 실패`);
@@ -451,7 +451,7 @@ async function cancelUpload() {
     }
 
     try {
-        const response = await fetch(`${API_BASE}/api/files/upload/cancel`, {
+        const response = await fetch(`${API_BASE}/api/v1/files/upload/cancel`, {
             method: "DELETE",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ sessionId }),

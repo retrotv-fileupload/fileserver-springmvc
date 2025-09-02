@@ -14,7 +14,7 @@ import java.util.UUID;
 import org.springframework.http.ResponseEntity;
 
 @RestController
-@RequestMapping("/api/files")
+@RequestMapping("/api/v1/files")
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 public class FileController {
     private final FileService fileService;

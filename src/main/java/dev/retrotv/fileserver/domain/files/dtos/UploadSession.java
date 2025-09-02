@@ -20,7 +20,7 @@ import lombok.Setter;
 public class UploadSession implements Serializable {
     @NonNull private UUID sessionId;
     @NonNull private String fileName;
-    @NonNull private String status;
+    @NonNull private StatusCode status;
     private long fileSize;
     private int totalChunks;
     private String mimeType;
@@ -29,12 +29,4 @@ public class UploadSession implements Serializable {
     private Set<Integer> uploadedChunks;
     private LocalDateTime createdAt;
     private LocalDateTime lastActivity;
-
-    public void setStatus(@NonNull String status) {
-        if (!StatusCode.contains(status)) {
-            throw new IllegalArgumentException("유효하지 않은 상태 코드입니다.");
-        }
-
-        this.status = status;
-    }
 }

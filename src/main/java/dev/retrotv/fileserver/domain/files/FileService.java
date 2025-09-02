@@ -137,7 +137,7 @@ public class FileService {
         return new UploadSession(
             UuidCreator.getTimeOrderedEpoch(), // UUID v7
             initData.getFileName(),
-            StatusCode.INITIALIZED.getCode(),
+            StatusCode.INITIALIZED,
             initData.getFileSize(),
             initData.getTotalChunks(),
             initData.getMimeType(),
@@ -269,7 +269,7 @@ public class FileService {
         session.setLastActivity(LocalDateTime.now());
 
         return new ChunkUploadResponse(
-            session.getUploadedChunks().size() == session.getTotalChunks() ? StatusCode.ALL_CHUNKS_UPLOADED.getCode() : StatusCode.UPLOADING.getCode(),
+            session.getUploadedChunks().size() == session.getTotalChunks() ? StatusCode.ALL_CHUNKS_UPLOADED : StatusCode.UPLOADING,
             "청크 업로드 성공",
             true,
             chunkIndex,

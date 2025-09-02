@@ -14,7 +14,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ChunkUploadResponse implements Serializable {
-    @NonNull private String status;
+    @NonNull private StatusCode status;
     @NonNull private String message;
     private boolean success;
     private int chunkIndex;
@@ -22,12 +22,4 @@ public class ChunkUploadResponse implements Serializable {
     private int uploadedChunks;
     private int totalChunks;
     private boolean isComplete;
-
-    public void setStatus(@NonNull String status) {
-        if (!StatusCode.contains(status)) {
-            throw new IllegalArgumentException("유효하지 않은 상태 코드입니다.");
-        }
-
-        this.status = status;
-    }
 }

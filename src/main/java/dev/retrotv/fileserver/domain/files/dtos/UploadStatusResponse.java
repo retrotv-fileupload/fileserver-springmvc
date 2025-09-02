@@ -18,7 +18,7 @@ import lombok.Setter;
 @AllArgsConstructor
 public class UploadStatusResponse implements Serializable {
     @NonNull private UUID sessionId;
-    @NonNull private String status;
+    @NonNull private StatusCode status;
     @NonNull private String fileName;
     private double progress;
     private int uploadedChunks;
@@ -26,12 +26,4 @@ public class UploadStatusResponse implements Serializable {
     private Set<Integer> missingChunks;
     private long fileSize;
     private LocalDateTime lastActivity;
-
-    public void setStatus(@NonNull String status) {
-        if (!StatusCode.contains(status)) {
-            throw new IllegalArgumentException("유효하지 않은 상태 코드입니다.");
-        }
-
-        this.status = status;
-    }
 }
