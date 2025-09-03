@@ -4,6 +4,7 @@ import java.io.Serializable;
 
 import dev.retrotv.fileserver.enums.StatusCode;
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
@@ -11,6 +12,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
+@EqualsAndHashCode
 @NoArgsConstructor
 @AllArgsConstructor
 public class ChunkUploadResponse implements Serializable {

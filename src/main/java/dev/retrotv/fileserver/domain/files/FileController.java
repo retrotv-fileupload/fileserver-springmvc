@@ -79,7 +79,6 @@ public class FileController {
         @RequestParam int chunkIndex,
         @RequestParam MultipartFile chunk
     ) {
-		// 파일 청크 업로드 로직 구현 필요
 		return ResponseEntity.ok(
 			new SingleDataResponse<>(fileService.saveChunk(sessionId, chunkIndex, chunk))
 		);
