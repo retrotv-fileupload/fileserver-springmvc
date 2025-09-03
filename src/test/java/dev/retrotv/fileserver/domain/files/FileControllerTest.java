@@ -17,6 +17,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.multipart.MultipartFile;
 
 import dev.retrotv.fileserver.domain.files.dtos.ChunkUploadResponse;
+import dev.retrotv.fileserver.domain.files.dtos.FileInfo;
 import dev.retrotv.fileserver.domain.files.dtos.InitData;
 import dev.retrotv.fileserver.domain.files.dtos.UploadSession;
 import dev.retrotv.fileserver.domain.files.dtos.UploadStatusResponse;
@@ -114,7 +115,7 @@ class FileControllerTest {
     }
 
     @Test
-    @DisplayName("upload/chunk")
+    @DisplayName("upload/chunk 테스트")
     void test_uploadChunk() throws Exception {
         UUID sessionId = UUID.randomUUID();
         MockMultipartFile file = new MockMultipartFile("chunk", "test.txt", "text/plain", "base64-encoded-chunk-data".getBytes());
@@ -161,5 +162,65 @@ class FileControllerTest {
                .andExpect(jsonPath("$.data.success").value(response.isSuccess()))
                .andExpect(jsonPath("$.data.message").value(response.getMessage()))
                .andExpect(jsonPath("$.data.status").value(response.getStatus().name()));
+    }
+
+    @Test
+    @DisplayName("upload/complete 테스트")
+    void test_uploadComplete() throws Exception {
+        UUID sessionId = UUID.randomUUID();
+        FileInfo fileInfo = new FileInfo(
+            sessionId,
+            "test.txt",
+            1024L,
+            "plain/text",
+            new ArrayList<>()
+        );
+        given(
+            fileService.mergeChunks(sessionId)
+        ).willReturn(fileInfo);
+
+        ResultActions actions = this.mockMvc.perform(
+            post("/api/v1/files/upload/complete")
+                .contentType(APPLICATION_JSON)
+                .content(
+                    """
+                    {
+                        "sessionId": "%s"
+                    }
+                    """.formatted(sessionId)
+                )
+        );
+
+        actions.andExpect(status().isOk())
+               .andExpect(content().contentType(APPLICATION_JSON))
+               .andExpect(jsonPath("$.data.id").value(fileInfo.getId().toString()))
+               .andExpect(jsonPath("$.data.fileName").value(fileInfo.getFileName()))
+               .andExpect(jsonPath("$.data.fileSize").value(fileInfo.getFileSize()))
+               .andExpect(jsonPath("$.data.mimeType").value(fileInfo.getMimeType()))
+               .andExpect(jsonPath("$.data.tags").value(fileInfo.getTags()));
+    }
+
+    @Test
+    @DisplayName("upload/cancel 테스트")
+    void test_uploadCancel() throws Exception {
+        UUID sessionId = UUID.randomUUID();
+
+        ResultActions actions = this.mockMvc.perform(
+            delete("/api/v1/files/upload/cancel")
+                .contentType(APPLICATION_JSON)
+                .content(
+                    """
+                    {
+                        "sessionId": "%s"
+                    }
+                    """.formatted(sessionId)
+                )
+        );
+
+        actions.andExpect(status().isOk())
+               .andExpect(content().contentType(APPLICATION_JSON))
+               .andExpect(jsonPath("$.message").value("업로드가 취소되었습니다."));
+        
+        verify(fileService).uploadCancel(sessionId);
     }
 }

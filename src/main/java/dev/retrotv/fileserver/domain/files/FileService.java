@@ -125,7 +125,7 @@ public class FileService {
      * 
      * @param sessionId 취소할 세션 ID
      */
-    public void cancelUpload(@NonNull UUID sessionId) {
+    public void uploadCancel(@NonNull UUID sessionId) {
         removeSession(sessionId);
 
         // 임시 파일 및 디렉토리 삭제
