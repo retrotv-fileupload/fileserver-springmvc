@@ -20,7 +20,7 @@ public class ChunkUploadResponse implements Serializable {
     @NonNull private String message;
     private boolean success;
     private int chunkIndex;
-    private int progress;
+    private double progress;
     private int uploadedChunks;
     private int totalChunks;
     private boolean isComplete;
