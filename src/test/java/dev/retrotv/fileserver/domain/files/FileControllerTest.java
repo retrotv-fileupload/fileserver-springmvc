@@ -172,7 +172,7 @@ class FileControllerTest {
             sessionId,
             "test.txt",
             1024L,
-            "plain/text",
+            "text/plain",
             new ArrayList<>()
         );
         given(

@@ -5,6 +5,7 @@ import lombok.Getter;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 import dev.retrotv.fileserver.domain.files.dtos.UploadSession;
@@ -79,5 +80,18 @@ public class FileEntity {
 	@PreUpdate
 	public void updateTimestamp() {
 		this.updatedAt = LocalDateTime.now();
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		FileEntity that = (FileEntity) o;
+		return id.equals(that.id);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(id);
 	}
 }
