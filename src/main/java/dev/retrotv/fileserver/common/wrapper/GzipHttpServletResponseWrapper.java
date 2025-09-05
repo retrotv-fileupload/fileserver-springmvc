@@ -11,7 +11,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpServletResponseWrapper;
 
 public class GzipHttpServletResponseWrapper extends HttpServletResponseWrapper {
-
     private final GZIPOutputStream gzipOutputStream;
     private ServletOutputStream outputStream;
     private PrintWriter writer;

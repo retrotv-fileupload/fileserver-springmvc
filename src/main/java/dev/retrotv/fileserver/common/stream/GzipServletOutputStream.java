@@ -6,7 +6,6 @@ import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.WriteListener;
 
 public class GzipServletOutputStream extends ServletOutputStream {
-
     private final GZIPOutputStream gzipOutputStream;
 
     public GzipServletOutputStream(GZIPOutputStream gzipOutputStream) {
@@ -26,5 +25,4 @@ public class GzipServletOutputStream extends ServletOutputStream {
     public void write(int b) throws IOException {
         this.gzipOutputStream.write(b);
     }
-
 }
