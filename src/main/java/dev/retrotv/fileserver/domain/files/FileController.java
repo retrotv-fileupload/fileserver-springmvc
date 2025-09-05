@@ -9,8 +9,11 @@ import dev.retrotv.framework.foundation.common.response.Response;
 import dev.retrotv.framework.foundation.common.response.SingleDataResponse;
 import dev.retrotv.framework.foundation.common.response.SuccessResponse;
 
+import java.io.File;
 import java.util.UUID;
 
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 
 @RestController
@@ -35,8 +38,15 @@ public class FileController {
 	 * @return
 	 */
 	@GetMapping("/download/{id}")
-	public ResponseEntity<String> download(@PathVariable String id) {
-		return ResponseEntity.ok("Download file: " + id);
+	public ResponseEntity<Resource> download(@PathVariable UUID id) {
+		File file = fileService.getFileById(id);
+		Resource resource = new FileSystemResource(file);
+
+		return ResponseEntity.ok()
+			.header("Content-Disposition", "attachment; filename=\"" + file.getName() + "\"")
+			.contentLength(file.length())
+			.contentType(org.springframework.http.MediaType.APPLICATION_OCTET_STREAM)
+			.body(resource);
 	}
 
 	/**

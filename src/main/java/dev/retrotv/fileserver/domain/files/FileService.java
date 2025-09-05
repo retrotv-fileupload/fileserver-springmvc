@@ -8,11 +8,13 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -25,6 +27,8 @@ import com.github.f4b6a3.uuid.UuidCreator;
 
 import dev.retrotv.fileserver.common.exception.ChunkMergeException;
 import dev.retrotv.fileserver.common.exception.ChunkSaveException;
+import dev.retrotv.fileserver.common.exception.FileDownloadException;
+import dev.retrotv.fileserver.common.exception.HashingFailException;
 import dev.retrotv.fileserver.common.exception.SessionNotFoundException;
 import dev.retrotv.fileserver.common.properties.FileServerProperties;
 import dev.retrotv.fileserver.domain.files.dtos.ChunkUploadResponse;
@@ -44,6 +48,36 @@ public class FileService {
     private final FileRepository fileRepository;
     private final Map<UUID, UploadSession> uploadSessions;
     private final FileServerProperties fileServerProperties;
+
+    public File getFileById(UUID id) {
+        try {
+            Optional<FileEntity> entity = fileRepository.findById(id);
+            if (entity.isPresent()) {
+                FileEntity fileEntity = entity.get();
+                File file = new File(fileEntity.getFilePath());
+                if (file.exists()) {
+                    return file;
+                } else {
+                    throw new Exception("Error");
+                }
+            } else {
+                throw new Exception("Error");
+            }
+
+            // FileEntity fileEntity = fileRepository.findById(id)
+            //     .orElseThrow(() -> new FileDownloadException("해당하는 ID의 파일에 대한 정보가 데이터베이스 상에 존재하지 않습니다. ID: " + id));
+       
+            // File file = new File(fileEntity.getFilePath());
+            
+            // if (!file.exists()) {
+            //     throw new FileDownloadException("해당하는 파일이 물리적으로 존재하지 않거나 경로가 잘못 되었습니다. 경로: " + fileEntity.getFilePath());
+            // }
+
+            // return file;
+        } catch (Exception ex) {
+            throw new FileDownloadException("파일 정보를 조회하는 도중 오류가 발생했습니다. ID: " + id, ex);
+        }
+    }
 
     /**
      * FileService 생성자
@@ -189,8 +223,8 @@ public class FileService {
                 sb.append(String.format("%02x", b));
             }
             return sb.toString();
-        } catch (Exception e) {
-            throw new RuntimeException("SHA-256 해시 생성 실패: " + e.getMessage(), e);
+        } catch (NoSuchAlgorithmException | IOException ex) {
+            throw new HashingFailException("파일 해시 값 생성 실패", ex);
         }
     }
 
