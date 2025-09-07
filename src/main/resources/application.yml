@@ -18,3 +18,8 @@ fileserver:
   chunk-size: 8192
   upload-dir: uploads/
   temp-dir: tmp/
+  compression:
+    enabled: true
+  logging:
+    request: true
+    response: true

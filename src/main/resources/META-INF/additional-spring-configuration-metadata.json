@@ -1,19 +1,32 @@
-{
-  "properties": [
-    {
-      "name": "fileserver.chunk-size",
-      "type": "java.lang.Integer",
-      "description": "업로드시 청크 크기"
-    },
-    {
-      "name": "fileserver.upload-dir",
-      "type": "java.lang.String",
-      "description": "파일 저장 경로"
-    },
-    {
-      "name": "fileserver.temp-dir",
-      "type": "java.lang.String",
-      "description": "임시 파일 저장 경로"
-    }
-  ]
-}
+{"properties": [
+  {
+    "name": "fileserver.chunk-size",
+    "type": "java.lang.Integer",
+    "description": "업로드시 청크 크기"
+  },
+  {
+    "name": "fileserver.upload-dir",
+    "type": "java.lang.String",
+    "description": "파일 저장 경로"
+  },
+  {
+    "name": "fileserver.temp-dir",
+    "type": "java.lang.String",
+    "description": "임시 파일 저장 경로"
+  },
+  {
+    "name": "fileserver.compression.enabled",
+    "type": "java.lang.Boolean",
+    "description": "파일을 내려받을 시, 압축여부"
+  },
+  {
+    "name": "fileserver.logging.request",
+    "type": "java.lang.Boolean",
+    "description": "요청에 대한 로깅 여부"
+  },
+  {
+    "name": "fileserver.logging.response",
+    "type": "java.lang.Boolean",
+    "description": "응답에 대한 로깅 여부"
+  }
+]}

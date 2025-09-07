@@ -3,6 +3,7 @@ package dev.retrotv.fileserver.domain.files;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import dev.retrotv.fileserver.domain.files.dtos.DownloadFileInfo;
 import dev.retrotv.fileserver.domain.files.dtos.InitData;
 import dev.retrotv.fileserver.domain.files.dtos.SessionIdRequest;
 import dev.retrotv.framework.foundation.common.response.Response;
@@ -39,11 +40,12 @@ public class FileController {
 	 */
 	@GetMapping("/download/{id}")
 	public ResponseEntity<Resource> download(@PathVariable UUID id) {
-		File file = fileService.getFileById(id);
+		DownloadFileInfo fileInfo = fileService.getFileInfo(id);
+		File file = new File(fileInfo.getFilePath());
 		Resource resource = new FileSystemResource(file);
 
 		return ResponseEntity.ok()
-			.header("Content-Disposition", "attachment; filename=\"" + file.getName() + "\"")
+			.header("Content-Disposition", "attachment; filename=\"" + fileInfo.getOriginalFileName() + "\"")
 			.contentLength(file.length())
 			.contentType(org.springframework.http.MediaType.APPLICATION_OCTET_STREAM)
 			.body(resource);

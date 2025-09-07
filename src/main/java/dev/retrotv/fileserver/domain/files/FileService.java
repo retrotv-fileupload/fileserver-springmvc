@@ -31,6 +31,7 @@ import dev.retrotv.fileserver.common.exception.HashingFailException;
 import dev.retrotv.fileserver.common.exception.SessionNotFoundException;
 import dev.retrotv.fileserver.common.properties.FileServerProperties;
 import dev.retrotv.fileserver.domain.files.dtos.ChunkUploadResponse;
+import dev.retrotv.fileserver.domain.files.dtos.DownloadFileInfo;
 import dev.retrotv.fileserver.domain.files.dtos.FileInfo;
 import dev.retrotv.fileserver.domain.files.dtos.InitData;
 import dev.retrotv.fileserver.domain.files.dtos.UploadSession;
@@ -48,17 +49,23 @@ public class FileService {
     private final Map<UUID, UploadSession> uploadSessions;
     private final FileServerProperties fileServerProperties;
 
-    public File getFileById(UUID id) {
+    public DownloadFileInfo getFileInfo(UUID id) {
         FileEntity fileEntity = fileRepository.findById(id)
             .orElseThrow(() -> new FileDownloadException("해당하는 ID의 파일에 대한 정보가 데이터베이스 상에 존재하지 않습니다. ID: " + id));
     
         File file = new File(fileEntity.getFilePath());
-        
         if (!file.exists()) {
             throw new FileDownloadException("해당하는 파일이 물리적으로 존재하지 않거나 경로가 잘못 되었습니다. 경로: " + fileEntity.getFilePath());
         }
 
-        return file;
+        return new DownloadFileInfo(
+            fileEntity.getOriginalFileName(),
+            fileEntity.getFileName(),
+            fileEntity.getFilePath(),
+            fileEntity.getMimeType(),
+            fileEntity.getSize(),
+            fileEntity.getHash()
+        );
     }
 
     /**

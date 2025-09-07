@@ -1,5 +1,6 @@
 package dev.retrotv.fileserver.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,11 +31,12 @@ public class FilterConfig {
     }
 
     @Bean
-    public FilterRegistrationBean<FileDownloadFilter> fileDownloadFilter() {
+    public FilterRegistrationBean<FileDownloadFilter> fileDownloadFilter(@Value("${fileserver.compression.enabled:true}") boolean compressionEnabled) {
         FilterRegistrationBean<FileDownloadFilter> registrationBean = new FilterRegistrationBean<>();
         registrationBean.setFilter(new FileDownloadFilter());
         registrationBean.addUrlPatterns("/api/*");
         registrationBean.setOrder(3);
+        registrationBean.setEnabled(compressionEnabled);
         return registrationBean;
     }
 }
