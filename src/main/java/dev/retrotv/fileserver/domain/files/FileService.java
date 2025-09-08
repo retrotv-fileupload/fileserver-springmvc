@@ -32,7 +32,7 @@ import dev.retrotv.fileserver.common.exception.SessionNotFoundException;
 import dev.retrotv.fileserver.common.properties.FileServerProperties;
 import dev.retrotv.fileserver.domain.files.dtos.ChunkUploadResponse;
 import dev.retrotv.fileserver.domain.files.dtos.DownloadFileInfo;
-import dev.retrotv.fileserver.domain.files.dtos.FileInfo;
+import dev.retrotv.fileserver.domain.files.dtos.UploadFileInfo;
 import dev.retrotv.fileserver.domain.files.dtos.InitData;
 import dev.retrotv.fileserver.domain.files.dtos.UploadSession;
 import dev.retrotv.fileserver.domain.files.dtos.UploadStatusResponse;
@@ -123,7 +123,7 @@ public class FileService {
      * @return 파일 정보
      */
     @Transactional
-    public FileInfo mergeChunks(@NonNull UUID sessionId) {
+    public UploadFileInfo mergeChunks(@NonNull UUID sessionId) {
         UploadSession session = getSession(sessionId);
 
         // 모든 청크가 업로드되었는지 확인
@@ -135,7 +135,7 @@ public class FileService {
         File mergedFile = merge(sessionId);
 
         // 데이터베이스에 파일 정보 저장
-        FileInfo fileInfo = saveFileInfo(sessionId, mergedFile);
+        UploadFileInfo fileInfo = saveFileInfo(sessionId, mergedFile);
 
         // 임시 파일 및 디렉토리 삭제
         removeTmpFiles(sessionId);
@@ -332,7 +332,7 @@ public class FileService {
         }
     }
 
-    private FileInfo saveFileInfo(UUID sessionId, File mergedFile) {
+    private UploadFileInfo saveFileInfo(UUID sessionId, File mergedFile) {
         UploadSession session = getSession(sessionId);
 
         // 파일 태그 엔티티 리스트 생성
@@ -355,7 +355,7 @@ public class FileService {
         );
 
         // 파일 정보 반환
-        return new FileInfo(
+        return new UploadFileInfo(
             savedEntity.getId(),
             savedEntity.getOriginalFileName(),
             savedEntity.getSize(),

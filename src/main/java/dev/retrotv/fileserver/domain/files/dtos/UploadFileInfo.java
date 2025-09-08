@@ -16,7 +16,7 @@ import lombok.Setter;
 @EqualsAndHashCode
 @NoArgsConstructor
 @AllArgsConstructor
-public class FileInfo implements Serializable {
+public class UploadFileInfo implements Serializable {
     @NonNull UUID id;
     @NonNull String fileName;
     long fileSize;
