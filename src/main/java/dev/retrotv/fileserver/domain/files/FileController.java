@@ -11,6 +11,7 @@ import dev.retrotv.framework.foundation.common.response.SingleDataResponse;
 import dev.retrotv.framework.foundation.common.response.SuccessResponse;
 
 import java.io.File;
+import java.util.Objects;
 import java.util.UUID;
 
 import org.springframework.core.io.FileSystemResource;
@@ -45,11 +46,10 @@ public class FileController {
 		DownloadFileInfo fileInfo = fileService.getFileInfo(id);
 		File file = new File(fileInfo.getFilePath());
 		Resource resource = new FileSystemResource(file);
-
 		return ResponseEntity.ok()
 			.header("Content-Disposition", "attachment; filename=\"" + fileInfo.getOriginalFileName() + "\"")
 			.contentLength(file.length())
-			.contentType(APPLICATION_OCTET_STREAM)
+			.contentType(Objects.requireNonNull(APPLICATION_OCTET_STREAM))
 			.body(resource);
 	}
 
@@ -68,7 +68,7 @@ public class FileController {
 
 	/**
 	 * 파일 업로드 초기화
-	 * 
+	 *
 	 * @param initData 초기화 정보
 	 * @return
 	 */

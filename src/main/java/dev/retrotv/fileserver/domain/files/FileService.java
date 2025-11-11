@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
@@ -236,12 +237,27 @@ public class FileService {
 
     // 임시 청크 파일 삭제
     private void removeTmpFiles(UUID sessionId) {
+        boolean result = true;
         File tmpDir = new File(fileServerProperties.getTempDir() + sessionId);
         if (tmpDir.exists()) {
             for (File file : tmpDir.listFiles()) {
-                file.delete();
+                result = remove(file.toPath()) && result;
             }
-            tmpDir.delete();
+
+            result = remove(tmpDir.toPath()) && result;
+        }
+
+        if (!result) {
+            log.warn("일부 임시파일 삭제에 실패했습니다.");
+        }
+    }
+
+    private boolean remove(Path path) {
+        try {
+            Files.delete(path);
+            return true;
+        } catch (IOException ex) {
+            return false;
         }
     }
 
@@ -260,7 +276,8 @@ public class FileService {
     private String createChunkFileName(UploadSession session, int chunkIndex) {
         int totalChunks = session.getTotalChunks();
         int padLength = String.valueOf(totalChunks).length();
-        String paddedIndex = String.format("%0" + padLength + "d", chunkIndex);
+        String format = "%0" + padLength + "d";
+        String paddedIndex = String.format(format, chunkIndex);
 
         return session.getSessionId() + "_chunk_" + paddedIndex;
     }
@@ -295,7 +312,7 @@ public class FileService {
             "청크 업로드 성공",
             true,
             chunkIndex,
-            (session.getUploadedChunks().size() / session.getTotalChunks()) * 100,
+            ((double) session.getUploadedChunks().size() / session.getTotalChunks()) * 100,
             session.getUploadedChunks().size(),
             session.getTotalChunks(),
             session.getUploadedChunks().size() == session.getTotalChunks()

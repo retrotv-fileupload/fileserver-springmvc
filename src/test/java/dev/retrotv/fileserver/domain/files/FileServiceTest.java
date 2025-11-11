@@ -115,14 +115,16 @@ class FileServiceTest {
     @DisplayName("saveChunk 테스트")
     @MockitoSettings(strictness = LENIENT)
     void test_saveChunk() {
+        MultipartFile validChunk = new MockMultipartFile("file_chunk_001", new byte[1024]);
         assertThrows(
             NullPointerException.class,
-            () -> fileService.saveChunk(null, 0, new MockMultipartFile("file_chunk_001", new byte[1024]))
+            () -> fileService.saveChunk(null, 0, validChunk)
         );
 
+        UUID validSessionId = UUID.randomUUID();
         assertThrows(
             NullPointerException.class,
-            () -> fileService.saveChunk(UUID.randomUUID(), 0, null)
+            () -> fileService.saveChunk(validSessionId, 0, null)
         );
 
         // given
@@ -151,10 +153,11 @@ class FileServiceTest {
     @DisplayName("mergeChunks 테스트")
     @MockitoSettings(strictness = LENIENT)
     void test_mergeChunks() {
-        assertThrows(
+        NullPointerException exception1 = assertThrows(
             NullPointerException.class,
             () -> fileService.mergeChunks(null)
         );
+        assertNotNull(exception1);
 
         // given
         InitData initData = new InitData();
@@ -164,14 +167,15 @@ class FileServiceTest {
         initData.setSubDir("test");
         initData.setTags(new ArrayList<>());
         initData.setTotalChunks(2);
-
         UploadSession uploadSession = fileService.initializeUploadSession(initData);
 
         // when
-        assertThrows(
+        @SuppressWarnings("java:S5778")
+        ChunkMergeException ex = assertThrows(
             ChunkMergeException.class,
             () -> fileService.mergeChunks(uploadSession.getSessionId())
         );
+        assertEquals("모든 청크가 업로드되지 않았습니다.", ex.getMessage());
 
         fileService.saveChunk(uploadSession.getSessionId(), 1, new MockMultipartFile("file_chunk_1", new byte[1024]));
         fileService.saveChunk(uploadSession.getSessionId(), 2, new MockMultipartFile("file_chunk_2", new byte[1024]));
@@ -183,6 +187,7 @@ class FileServiceTest {
             new ArrayList<>(),
             uploadSession
         );
+
         given(
             fileRepository.save(fileEntity)
         ).willReturn(fileEntity);
@@ -190,6 +195,8 @@ class FileServiceTest {
         UploadFileInfo fileInfo = fileService.mergeChunks(uploadSession.getSessionId());
 
         ArgumentCaptor<FileEntity> captor = ArgumentCaptor.forClass(FileEntity.class);
+
+        // capture 값은 런타임에 대입되기 때문에, save 메서드에 null이 전달 될 수 있다는 경고를 띄우므로 무시해도 됨
         verify(fileRepository).save(captor.capture());
         FileEntity actualEntity = captor.getValue();
 
@@ -218,18 +225,16 @@ class FileServiceTest {
         initData.setTotalChunks(2);
 
         UploadSession uploadSession = fileService.initializeUploadSession(initData);
-
-        // when
         fileService.uploadCancel(uploadSession.getSessionId());
 
         // then
         assertThrows(
-        dev.retrotv.fileserver.common.exception.SessionNotFoundException.class,
-        () -> {
-            // private 필드라면 getUploadStatus 등 public 메서드로 접근
-            fileService.getUploadStatus(uploadSession.getSessionId());
-        }
-    );
+            dev.retrotv.fileserver.common.exception.SessionNotFoundException.class,
+            () -> {
+                // private 필드라면 getUploadStatus 등 public 메서드로 접근
+                fileService.getUploadStatus(uploadSession.getSessionId());
+            }
+        );
     }
 
     @AfterAll

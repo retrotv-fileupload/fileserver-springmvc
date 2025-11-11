@@ -3,6 +3,7 @@ package dev.retrotv.fileserver.domain.files;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.UUID;
 
 import org.junit.jupiter.api.DisplayName;
@@ -45,7 +46,7 @@ class FileControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
-    
+
     @Test
     @DisplayName("upload/status/{sessionId} 테스트")
     void test_uploadStatus() throws Exception {
@@ -71,12 +72,12 @@ class FileControllerTest {
         );
 
         actions.andExpect(status().isOk())
-               .andExpect(content().contentType(APPLICATION_JSON))
-               .andExpect(jsonPath("$.data.sessionId").value(sessionId.toString()))
-               .andExpect(jsonPath("$.data.fileName").value("test.txt"))
-               .andExpect(jsonPath("$.data.fileSize").value(1024))
-               .andExpect(jsonPath("$.data.progress").value(100.0))
-               .andExpect(jsonPath("$.data.status").value("COMPLETED"));
+            .andExpect(content().contentType(Objects.requireNonNull(APPLICATION_JSON)))
+            .andExpect(jsonPath("$.data.sessionId").value(sessionId.toString()))
+            .andExpect(jsonPath("$.data.fileName").value("test.txt"))
+            .andExpect(jsonPath("$.data.fileSize").value(1024))
+            .andExpect(jsonPath("$.data.progress").value(100.0))
+            .andExpect(jsonPath("$.data.status").value("COMPLETED"));
     }
 
     @Test
@@ -91,7 +92,7 @@ class FileControllerTest {
 
         ResultActions actions = this.mockMvc.perform(
             post("/api/v1/files/upload/init")
-                .contentType(APPLICATION_JSON)
+                .contentType(Objects.requireNonNull(APPLICATION_JSON))
                 .content(
                     """
                     {
@@ -110,8 +111,8 @@ class FileControllerTest {
         System.out.println("Response Body: " + responseBody);
 
         actions.andExpect(status().isOk())
-               .andExpect(content().contentType(APPLICATION_JSON))
-               .andExpect(jsonPath("$.data.sessionId").value(sessionId.toString()));
+            .andExpect(content().contentType(Objects.requireNonNull(APPLICATION_JSON)))
+            .andExpect(jsonPath("$.data.sessionId").value(sessionId.toString()));
     }
 
     @Test
@@ -158,10 +159,10 @@ class FileControllerTest {
         assertArrayEquals(actualFile.getBytes(), file.getBytes());
 
         actions.andExpect(status().isOk())
-               .andExpect(content().contentType(APPLICATION_JSON))
-               .andExpect(jsonPath("$.data.success").value(response.isSuccess()))
-               .andExpect(jsonPath("$.data.message").value(response.getMessage()))
-               .andExpect(jsonPath("$.data.status").value(response.getStatus().name()));
+            .andExpect(content().contentType(Objects.requireNonNull(APPLICATION_JSON)))
+            .andExpect(jsonPath("$.data.success").value(response.isSuccess()))
+            .andExpect(jsonPath("$.data.message").value(response.getMessage()))
+            .andExpect(jsonPath("$.data.status").value(response.getStatus().name()));
     }
 
     @Test
@@ -181,23 +182,25 @@ class FileControllerTest {
 
         ResultActions actions = this.mockMvc.perform(
             post("/api/v1/files/upload/complete")
-                .contentType(APPLICATION_JSON)
+                .contentType(Objects.requireNonNull(APPLICATION_JSON))
                 .content(
-                    """
-                    {
-                        "sessionId": "%s"
-                    }
-                    """.formatted(sessionId)
+                    Objects.requireNonNull(
+                        """
+                        {
+                            "sessionId": "%s"
+                        }
+                        """.formatted(sessionId)
+                    )
                 )
         );
 
         actions.andExpect(status().isOk())
-               .andExpect(content().contentType(APPLICATION_JSON))
-               .andExpect(jsonPath("$.data.id").value(fileInfo.getId().toString()))
-               .andExpect(jsonPath("$.data.fileName").value(fileInfo.getFileName()))
-               .andExpect(jsonPath("$.data.fileSize").value(fileInfo.getFileSize()))
-               .andExpect(jsonPath("$.data.mimeType").value(fileInfo.getMimeType()))
-               .andExpect(jsonPath("$.data.tags").value(fileInfo.getTags()));
+            .andExpect(content().contentType(Objects.requireNonNull(APPLICATION_JSON)))
+            .andExpect(jsonPath("$.data.id").value(fileInfo.getId().toString()))
+            .andExpect(jsonPath("$.data.fileName").value(fileInfo.getFileName()))
+            .andExpect(jsonPath("$.data.fileSize").value(fileInfo.getFileSize()))
+            .andExpect(jsonPath("$.data.mimeType").value(fileInfo.getMimeType()))
+            .andExpect(jsonPath("$.data.tags").value(fileInfo.getTags()));
     }
 
     @Test
@@ -207,20 +210,22 @@ class FileControllerTest {
 
         ResultActions actions = this.mockMvc.perform(
             delete("/api/v1/files/upload/cancel")
-                .contentType(APPLICATION_JSON)
+                .contentType(Objects.requireNonNull(APPLICATION_JSON))
                 .content(
-                    """
-                    {
-                        "sessionId": "%s"
-                    }
-                    """.formatted(sessionId)
+                    Objects.requireNonNull(
+                        """
+                        {
+                            "sessionId": "%s"
+                        }
+                        """.formatted(sessionId)
+                    )
                 )
         );
 
         actions.andExpect(status().isOk())
-               .andExpect(content().contentType(APPLICATION_JSON))
-               .andExpect(jsonPath("$.message").value("업로드가 취소되었습니다."));
-        
+            .andExpect(content().contentType(Objects.requireNonNull(APPLICATION_JSON)))
+            .andExpect(jsonPath("$.message").value("업로드가 취소되었습니다."));
+
         verify(fileService).uploadCancel(sessionId);
     }
 }
