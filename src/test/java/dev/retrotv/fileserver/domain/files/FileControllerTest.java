@@ -17,8 +17,8 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.multipart.MultipartFile;
 
 import dev.retrotv.fileserver.domain.files.dtos.ChunkUploadResponse;
-import dev.retrotv.fileserver.domain.files.dtos.FileInfo;
 import dev.retrotv.fileserver.domain.files.dtos.InitData;
+import dev.retrotv.fileserver.domain.files.dtos.UploadFileInfo;
 import dev.retrotv.fileserver.domain.files.dtos.UploadSession;
 import dev.retrotv.fileserver.domain.files.dtos.UploadStatusResponse;
 import dev.retrotv.fileserver.enums.StatusCode;
@@ -168,7 +168,7 @@ class FileControllerTest {
     @DisplayName("upload/complete 테스트")
     void test_uploadComplete() throws Exception {
         UUID sessionId = UUID.randomUUID();
-        FileInfo fileInfo = new FileInfo(
+        UploadFileInfo fileInfo = new UploadFileInfo(
             sessionId,
             "test.txt",
             1024L,

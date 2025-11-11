@@ -16,8 +16,8 @@ import org.springframework.web.multipart.MultipartFile;
 import dev.retrotv.fileserver.common.exception.ChunkMergeException;
 import dev.retrotv.fileserver.common.properties.FileServerProperties;
 import dev.retrotv.fileserver.domain.files.dtos.ChunkUploadResponse;
-import dev.retrotv.fileserver.domain.files.dtos.FileInfo;
 import dev.retrotv.fileserver.domain.files.dtos.InitData;
+import dev.retrotv.fileserver.domain.files.dtos.UploadFileInfo;
 import dev.retrotv.fileserver.domain.files.dtos.UploadSession;
 import dev.retrotv.fileserver.domain.files.dtos.UploadStatusResponse;
 import dev.retrotv.fileserver.domain.files.entities.FileEntity;
@@ -55,7 +55,7 @@ class FileServiceTest {
     @Test
     @MockitoSettings(strictness = LENIENT)
     @DisplayName("initializeUploadSession 테스트")
-    void test_initializeUploadSession() throws Exception {
+    void test_initializeUploadSession() {
         assertThrows(
             NullPointerException.class,
             () -> fileService.initializeUploadSession(null)
@@ -85,7 +85,7 @@ class FileServiceTest {
     @Test
     @DisplayName("getUploadStatus 테스트")
     @MockitoSettings(strictness = LENIENT)
-    void test_getUploadStatus() throws Exception {
+    void test_getUploadStatus() {
         assertThrows(
             NullPointerException.class,
             () -> fileService.getUploadStatus(null)
@@ -114,7 +114,7 @@ class FileServiceTest {
     @Test
     @DisplayName("saveChunk 테스트")
     @MockitoSettings(strictness = LENIENT)
-    void test_saveChunk() throws Exception {
+    void test_saveChunk() {
         assertThrows(
             NullPointerException.class,
             () -> fileService.saveChunk(null, 0, new MockMultipartFile("file_chunk_001", new byte[1024]))
@@ -150,7 +150,7 @@ class FileServiceTest {
     @Test
     @DisplayName("mergeChunks 테스트")
     @MockitoSettings(strictness = LENIENT)
-    void test_mergeChunks() throws Exception {
+    void test_mergeChunks() {
         assertThrows(
             NullPointerException.class,
             () -> fileService.mergeChunks(null)
@@ -187,7 +187,7 @@ class FileServiceTest {
             fileRepository.save(fileEntity)
         ).willReturn(fileEntity);
 
-        FileInfo fileInfo = fileService.mergeChunks(uploadSession.getSessionId());
+        UploadFileInfo fileInfo = fileService.mergeChunks(uploadSession.getSessionId());
 
         ArgumentCaptor<FileEntity> captor = ArgumentCaptor.forClass(FileEntity.class);
         verify(fileRepository).save(captor.capture());
@@ -202,7 +202,7 @@ class FileServiceTest {
     @Test
     @DisplayName("uploadCancel 테스트")
     @MockitoSettings(strictness = LENIENT)
-    void test_uploadCancel() throws Exception {
+    void test_uploadCancel() {
         assertThrows(
             NullPointerException.class,
             () -> fileService.uploadCancel(null)

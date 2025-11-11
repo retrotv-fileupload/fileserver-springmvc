@@ -17,6 +17,8 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 
+import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
+
 @RestController
 @RequestMapping("/api/v1/files")
 @CrossOrigin(origins = "*", allowedHeaders = "*")
@@ -25,7 +27,7 @@ public class FileController {
 
 	/**
 	 * 파일 컨트롤러 생성자
-	 * 
+	 *
 	 * @param fileService 파일 서비스
 	 */
     public FileController(FileService fileService) {
@@ -34,7 +36,7 @@ public class FileController {
 
 	/**
 	 * 파일 다운로드
-	 * 
+	 *
 	 * @param id 파일 ID
 	 * @return
 	 */
@@ -47,13 +49,13 @@ public class FileController {
 		return ResponseEntity.ok()
 			.header("Content-Disposition", "attachment; filename=\"" + fileInfo.getOriginalFileName() + "\"")
 			.contentLength(file.length())
-			.contentType(org.springframework.http.MediaType.APPLICATION_OCTET_STREAM)
+			.contentType(APPLICATION_OCTET_STREAM)
 			.body(resource);
 	}
 
 	/**
 	 * 업로드 상태 조회
-	 * 
+	 *
 	 * @param sessionId 업로드 상태를 조회할 세션 ID (UUID 형식)
 	 * @return
 	 */
@@ -79,7 +81,7 @@ public class FileController {
 
 	/**
 	 * 파일 청크 업로드
-	 * 
+	 *
 	 * @param sessionId 세션 ID
 	 * @param chunkIndex 청크 인덱스
 	 * @param chunk 파일 청크
@@ -98,7 +100,7 @@ public class FileController {
 
 	/**
 	 * 파일 업로드 완료 알림
-	 * 
+	 *
 	 * @param request 업로드가 완료된 세션의 ID가 담긴 요청
 	 * @return
 	 */
@@ -111,7 +113,7 @@ public class FileController {
 
 	/**
 	 * 파일 업로드 취소
-	 * 
+	 *
 	 * @param request 업로드를 취소할 세션의 ID가 담긴 요청
 	 * @return
 	 */

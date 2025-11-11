@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,10 +48,10 @@ public class FileService {
     private final Map<UUID, UploadSession> uploadSessions;
     private final FileServerProperties fileServerProperties;
 
-    public DownloadFileInfo getFileInfo(UUID id) {
+    public DownloadFileInfo getFileInfo(@NonNull UUID id) {
         FileEntity fileEntity = fileRepository.findById(id)
             .orElseThrow(() -> new FileDownloadException("해당하는 ID의 파일에 대한 정보가 데이터베이스 상에 존재하지 않습니다. ID: " + id));
-    
+
         File file = new File(fileEntity.getFilePath());
         if (!file.exists()) {
             throw new FileDownloadException("해당하는 파일이 물리적으로 존재하지 않거나 경로가 잘못 되었습니다. 경로: " + fileEntity.getFilePath());
@@ -70,7 +69,7 @@ public class FileService {
 
     /**
      * FileService 생성자
-     * 
+     *
      * @param fileRepository FileRepository 객체
      * @param fileServerProperties FileServerProperties 객체
      */
@@ -82,7 +81,7 @@ public class FileService {
 
     /**
      * 업로드 세션 초기화
-     * 
+     *
      * @param initData 세션 초기화 정보
      * @return 업로드 세션
      */
@@ -95,7 +94,7 @@ public class FileService {
 
     /**
      * 업로드 상태 조회
-     * 
+     *
      * @param sessionId 세션 ID
      * @return 업로드 상태 응답
      */
@@ -105,7 +104,7 @@ public class FileService {
 
     /**
      * 청크 파일 저장
-     * 
+     *
      * @param sessionId 세션 ID
      * @param chunkIndex 청크 인덱스
      * @param chunk 청크 파일
@@ -118,7 +117,7 @@ public class FileService {
 
     /**
      * 청크 병합
-     * 
+     *
      * @param sessionId 세션 ID
      * @return 파일 정보
      */
@@ -145,7 +144,7 @@ public class FileService {
 
     /**
      * 업로드 취소
-     * 
+     *
      * @param sessionId 취소할 세션 ID
      */
     public void uploadCancel(@NonNull UUID sessionId) {
@@ -312,7 +311,7 @@ public class FileService {
             mergedDir.mkdirs();
         }
         File mergedFile = new File(mergedDir, session.getSessionId().toString());
-        
+
         try (OutputStream out = new FileOutputStream(mergedFile)) {
             for (int i = 0; i < session.getTotalChunks(); i++) {
                 String tmpDir = createTmpDir(sessionId);
@@ -324,7 +323,7 @@ public class FileService {
                 if (chunkFile.exists()) {
                     Files.copy(chunkFile.toPath(), out);
                 }
-            };
+            }
 
             return mergedFile;
         } catch (IOException e) {
@@ -337,12 +336,10 @@ public class FileService {
 
         // 파일 태그 엔티티 리스트 생성
         List<TagEntity> tags = session.getTags() == null ? null :
-                                      session.getTags()
-                                          .stream()
-                                          .map(
-                                              tag -> tag.toEntity(sessionId)).collect(Collectors.toList()
-                                          );
-        
+            session.getTags()
+                .stream()
+                .map(tag -> tag.toEntity(sessionId)).toList();
+
         // 파일 엔티티 생성
         FileEntity savedEntity = fileRepository.save(
             new FileEntity(
